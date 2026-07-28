@@ -17,3 +17,11 @@ h1 , p{
     font-weight: 70;
     top: 10%;
 }
+
+#header ,a{
+    margin-top: 0;
+    padding: 10px 0;
+    text-decoration: none;
+    font-size: 20px;
+
+}
