@@ -3,10 +3,19 @@ import { FaRobot } from "react-icons/fa";
 import { AiFillOpenAI } from "react-icons/ai";
 import { motion } from "motion/react"
 import { FcGoogle } from "react-icons/fc";
-
-
+import {signInWithPopup} from "firebase/auth"
+import { auth, provider } from '../utils/firebase';
 
 function Auth() {
+    const handleGooleAuth = async () =>{
+        try{
+            await signInWithPopup(auth, provider);
+            console.log(response);
+        }catch(err){
+            console.error(err);
+        }
+    }
+
   return (
     <div className = "w-full min-h-screen BG-[#f5f5f5] flex items-center justify-center justify-center px-6 py-20">
         <div className = "w-full max-w-md p-8 bg-white rounded-3xl shadow-2xl border border-gray-200">
@@ -27,6 +36,7 @@ function Auth() {
     </p>
 
     <motion.button
+    onClick={handleGooleAuth}
     whileHover={{ opacity:0.8,scale: 1.05 }}
     whileTap={{ opacity:1,scale: 0.95 }} 
     className = "w-full flex items-center justify-center gap-3 py-3 bg-black text-white rounded-full shadow-md">
