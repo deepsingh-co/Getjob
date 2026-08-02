@@ -5,12 +5,20 @@ import { motion } from "motion/react"
 import { FcGoogle } from "react-icons/fc";
 import {signInWithPopup} from "firebase/auth"
 import { auth, provider } from '../utils/firebase';
+import axios from 'axios';
+import { ServerUrl } from '../App';
 
 function Auth() {
-    const handleGooleAuth = async () =>{
+    const handleGoogleAuth = async () =>{
         try{
-            await signInWithPopup(auth, provider);
-            console.log(response);
+            const response = await signInWithPopup(auth, provider);
+            let User = response.user
+            let name = User.displayName
+            let email = User.email
+            const result = await axios.post(ServerUrl + "/api/auth/google",
+                 { name, email }, { withCredentials: true });
+                 console.log(ServerUrl);
+            console.log(result.data);
         }catch(err){
             console.error(err);
         }
@@ -36,7 +44,7 @@ function Auth() {
     </p>
 
     <motion.button
-    onClick={handleGooleAuth}
+    onClick={handleGoogleAuth}
     whileHover={{ opacity:0.8,scale: 1.05 }}
     whileTap={{ opacity:1,scale: 0.95 }} 
     className = "w-full flex items-center justify-center gap-3 py-3 bg-black text-white rounded-full shadow-md">
