@@ -2,8 +2,8 @@ import React from 'react'
 
 function Home(){
     return(
-        <div>
-            <h1>Welcome to the Home Page</h1>
+        <div className = " min-h-screen bg-[#f3f3f3] flex flex-col">
+            <Navbar />
         </div>
     )
 }
