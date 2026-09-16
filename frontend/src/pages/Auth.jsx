@@ -54,7 +54,7 @@ function Auth() {
     whileTap={{ opacity:1,scale: 0.95 }} 
     className = "w-full flex items-center justify-center gap-3 py-3 bg-black text-white rounded-full shadow-md">
         <FcGoogle size={24} />
-        Continue with Google
+        Continue with Google Account
         
     </motion.button>
     </div>
