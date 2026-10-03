@@ -2,6 +2,28 @@
 
 GetJob is a full-stack web application designed to help users prepare for job interviews, manage resume/AI mock interviews, and streamline their career advancement process using modern web technologies and AI integrations.
 
+## 🤖 Hiring Automation (Twilio)
+
+1. A company **posts a job** (`POST /api/jobs` or the `/post-job` page).
+2. The system **matches candidate profiles** against the job (skills 60%, experience 25%, education 10%, location 5%) and stores every candidate scoring above the threshold.
+3. The company **HR receives a Twilio SMS** listing the shortlisted candidates with their match score, plus a reply code (`YES <refCode>` / `NO <refCode>`).
+4. When the **HR replies "YES"**, the system places an **automated Twilio voice call** (TwiML text-to-speech) to each selected candidate confirming the interview date/time. The candidate can press `1` to confirm or `2` to reschedule.
+5. Every step (matched → hr_notified → hr_confirmed → candidate_called) is tracked in the interview pipeline.
+
+### Endpoints
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/user/profile` | Save candidate profile (phone, skills, experience) |
+| POST | `/api/jobs` | Post job → match profiles → SMS the HR |
+| GET | `/api/jobs/:id/matches` | View matched candidates & status |
+| POST | `/api/hiring/interviews/:id/confirm` | Confirm → automated call to candidate |
+| POST | `/api/hiring/interviews/:id/reject` | Reject candidate |
+| POST | `/api/hiring/twilio/inbound-sms` | Twilio webhook for HR reply |
+| POST | `/api/hiring/twilio/candidate-gather` | Twilio webhook for candidate DTMF |
+| POST | `/api/hiring/twilio/call-status` | Twilio voice status callback |
+
+Point your Twilio phone number's **Messaging webhook** to `SERVER_URL/api/hiring/twilio/inbound-sms` (HTTP POST) to enable HR replies.
+
 ## 🛠️ Tech Stack
 
 ### Frontend (`/frontend`)
@@ -29,10 +51,11 @@ GetJob is a full-stack web application designed to help users prepare for job in
 Getjob/
 ├── backend/
 │   ├── config/          # Database connection & token utilities
-│   ├── controllers/     # Request handler logic (Auth, User)
+│   ├── controllers/     # Request handler logic (Auth, User, Job, Hiring)
 │   ├── middleware/      # Authentication & authorization middleware
-│   ├── models/          # Mongoose schemas (User, etc.)
+│   ├── models/          # Mongoose schemas (User, Profile, Job, Interview)
 │   ├── routes/          # Express route definitions
+│   ├── services/        # Profile matching + Twilio SMS/voice services
 │   ├── index.js         # Entry point for Express server
 │   └── package.json     # Backend dependencies & scripts
 └── frontend/
@@ -40,7 +63,7 @@ Getjob/
     ├── src/
     │   ├── assets/      # Videos, icons, and image resources
     │   ├── components/  # Reusable UI components (Navbar, etc.)
-    │   ├── pages/       # Application pages (Home, Auth)
+    │   ├── pages/       # Application pages (Home, Auth, PostJob, CandidateProfile)
     │   ├── redux/       # Redux store and user slice
     │   ├── utils/       # Firebase & helper utilities
     │   ├── App.jsx      # Main application component & routes
@@ -74,7 +97,14 @@ Create a `.env` file in the `backend` directory with the following variables:
 PORT=8000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
+SERVER_URL=http://localhost:8000
+
+# Twilio (SMS to HR + automated interview calls)
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+1XXXXXXXXXX
 ```
+> If the Twilio keys are empty, the system runs in **dry-run mode**: SMS/call content is printed to the server log instead of being sent.
 
 Run the backend development server:
 ```bash
