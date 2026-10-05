@@ -25,6 +25,19 @@ export const confirmInterview = async (req, res) => {
     }
 };
 
+export const getMyInterviews = async (req, res) => {
+    try {
+        const interviews = await Interview.find({ candidate: req.userId })
+            .populate("job", "title company location interviewDateTime status refCode")
+            .populate("profile", "phone skills experienceYears")
+            .sort({ updatedAt: -1 });
+
+        return res.status(200).json(interviews);
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to get interviews ${error.message}` });
+    }
+};
+
 export const rejectInterview = async (req, res) => {
     try {
         const interview = await loadInterview(req.params.id);

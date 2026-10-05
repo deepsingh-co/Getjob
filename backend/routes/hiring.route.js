@@ -3,6 +3,7 @@ import isAuth from "../middleware/isAuth.js";
 import {
     confirmInterview,
     rejectInterview,
+    getMyInterviews,
     handleHrSmsReply,
     handleCandidateGather,
     handleCallStatus
@@ -10,6 +11,7 @@ import {
 
 const hiringRouter = express.Router();
 
+hiringRouter.get("/my-interviews", isAuth, getMyInterviews);
 hiringRouter.post("/interviews/:id/confirm", isAuth, confirmInterview);
 hiringRouter.post("/interviews/:id/reject", isAuth, rejectInterview);
 
