@@ -1,7 +1,10 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
 import { FaArrowRight, FaPlay } from 'react-icons/fa'
 import { HiSparkles } from 'react-icons/hi'
+import axios from 'axios'
+import { ServerUrl } from '../../App'
 import heroShot from '../../assets/MM.png'
 import resumeShot from '../../assets/resume.png'
 import hrShot from '../../assets/HR.png'
@@ -47,6 +50,19 @@ function FloatCard({ className, delay = 0, rotate = 0, src, label, sub }) {
 
 function Hero() {
     const title = "Crack the interview. Land the offer."
+    const [stats, setStats] = useState(null)
+
+    useEffect(() => {
+        axios.get(ServerUrl + "/api/stats")
+            .then((res) => setStats(res.data))
+            .catch(() => setStats({ candidates: 0, jobs: 0, confirmed: 0 }))
+    }, [])
+
+    const heroStats = [
+        { value: stats ? stats.candidates.toLocaleString("en-IN") : "—", label: "candidates on board" },
+        { value: stats ? stats.jobs.toLocaleString("en-IN") : "—", label: "jobs posted" },
+        { value: stats ? stats.confirmed.toLocaleString("en-IN") : "—", label: "interviews confirmed" }
+    ]
 
     return (
         <section className="relative overflow-hidden">
@@ -98,15 +114,19 @@ function Hero() {
                         transition={{ delay: 0.65 }}
                         className="mt-9 flex flex-wrap items-center gap-4"
                     >
-                        <motion.Link
-                            to="/auth"
+                        <motion.span
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
-                            className="group inline-flex items-center gap-2 rounded-full bg-black text-white px-7 py-3.5 text-sm font-medium shadow-lg shadow-black/20"
+                            className="inline-block"
                         >
-                            Start practising free
-                            <FaArrowRight className="transition-transform group-hover:translate-x-1" />
-                        </motion.Link>
+                            <Link
+                                to="/auth"
+                                className="group inline-flex items-center gap-2 rounded-full bg-black text-white px-7 py-3.5 text-sm font-medium shadow-lg shadow-black/20"
+                            >
+                                Start practising free
+                                <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </motion.span>
 
                         <motion.button
                             whileHover={{ scale: 1.04 }}
@@ -125,20 +145,15 @@ function Hero() {
                         transition={{ delay: 0.8 }}
                         className="mt-10 flex items-center gap-6 text-xs text-gray-500"
                     >
-                        <div>
-                            <p className="text-xl font-semibold text-gray-900">12k+</p>
-                            <p>mock interviews solved</p>
-                        </div>
-                        <div className="w-px h-8 bg-gray-200" />
-                        <div>
-                            <p className="text-xl font-semibold text-gray-900">94%</p>
-                            <p>felt interview-ready</p>
-                        </div>
-                        <div className="w-px h-8 bg-gray-200" />
-                        <div>
-                            <p className="text-xl font-semibold text-gray-900">600+</p>
-                            <p>hiring partners</p>
-                        </div>
+                        {heroStats.map((s, i) => (
+                            <React.Fragment key={s.label}>
+                                {i > 0 && <div className="w-px h-8 bg-gray-200" />}
+                                <div>
+                                    <p className="text-xl font-semibold text-gray-900">{s.value}</p>
+                                    <p>{s.label}</p>
+                                </div>
+                            </React.Fragment>
+                        ))}
                     </motion.div>
                 </div>
 
