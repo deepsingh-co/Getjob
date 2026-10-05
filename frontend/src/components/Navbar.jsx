@@ -6,6 +6,7 @@ import { HiMenu, HiX } from 'react-icons/hi'
 
 const links = [
     { to: "/", label: "Home" },
+    { to: "/dashboard", label: "Dashboard", auth: true },
     { to: "/post-job", label: "Post Job" },
     { to: "/profile", label: "Candidate Profile" }
 ]
@@ -39,7 +40,7 @@ function Navbar() {
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-1 text-sm">
-                    {links.map((l) => (
+                    {links.filter((l) => !l.auth || userData).map((l) => (
                         <motion.span key={l.to} whileHover={{ y: -2 }}>
                             <Link
                                 to={l.to}
@@ -56,9 +57,9 @@ function Navbar() {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate(userData ? "/post-job" : "/auth")}
+                        onClick={() => navigate(userData ? "/dashboard" : "/auth")}
                         className="bg-black text-white text-sm px-5 py-2 rounded-full">
-                        {userData ? "Post a Job" : "Login"}
+                        {userData ? "Dashboard" : "Login"}
                     </motion.button>
 
                     <button
@@ -79,7 +80,7 @@ function Navbar() {
                             className="absolute top-full mt-2 left-0 right-0 overflow-hidden rounded-3xl bg-white border border-gray-200 shadow-xl md:hidden"
                         >
                             <div className="p-3 flex flex-col">
-                                {links.map((l) => (
+                                {links.filter((l) => !l.auth || userData).map((l) => (
                                     <Link
                                         key={l.to}
                                         to={l.to}
