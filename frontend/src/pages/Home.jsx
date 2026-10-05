@@ -1,6 +1,8 @@
 import React from 'react'
 import { motion } from 'motion/react'
+import { useSelector } from 'react-redux'
 import Navbar from '../components/Navbar.jsx'
+import Dashboard from './Dashboard.jsx'
 import Hero from '../components/landing/Hero.jsx'
 import Marquee from '../components/landing/Marquee.jsx'
 import Features from '../components/landing/Features.jsx'
@@ -10,6 +12,12 @@ import Testimonials from '../components/landing/Testimonials.jsx'
 import CtaFooter from '../components/landing/CtaFooter.jsx'
 
 function Home() {
+    const { userData, authChecked } = useSelector((state) => state.user)
+
+    if (authChecked && userData) {
+        return <Dashboard />
+    }
+
     return (
         <div className="min-h-screen bg-[#f3f3f3] flex flex-col overflow-x-hidden">
             <Navbar />

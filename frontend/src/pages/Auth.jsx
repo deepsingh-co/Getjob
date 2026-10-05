@@ -7,8 +7,8 @@ import { signInWithPopup } from "firebase/auth"
 import { auth, provider } from '../utils/firebase';
 import axios from 'axios';
 import { ServerUrl } from '../App';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { setUserData } from '../redux/userSlice.js';
 
 const friendlyError = (code) => {
@@ -27,8 +27,13 @@ const friendlyError = (code) => {
 function Auth() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const { userData, authChecked } = useSelector((state) => state.user)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+
+    if (authChecked && userData) {
+        return <Navigate to="/dashboard" replace />
+    }
 
     const handleGoogleAuth = async () => {
         setLoading(true)
