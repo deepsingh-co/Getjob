@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FaRobot, FaSpinner } from "react-icons/fa";
+import { FaRobot, FaSpinner, FaBuilding } from "react-icons/fa";
 import { AiFillOpenAI } from "react-icons/ai";
 import { motion } from "motion/react"
 import { FcGoogle } from "react-icons/fc";
@@ -8,7 +8,7 @@ import { auth, provider } from '../utils/firebase';
 import axios from 'axios';
 import { ServerUrl } from '../App';
 import { useDispatch, useSelector } from 'react-redux';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { setUserData } from '../redux/userSlice.js';
 
 const friendlyError = (code) => {
@@ -24,15 +24,22 @@ const friendlyError = (code) => {
     return map[code] || null
 }
 
+const homeFor = (user) => {
+    if (!user) return "/auth"
+    return user.role === "company" ? "/company" : "/dashboard"
+}
+
 function Auth() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const isCompany = searchParams.get("role") === "company"
     const { userData, authChecked } = useSelector((state) => state.user)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
 
     if (authChecked && userData) {
-        return <Navigate to="/dashboard" replace />
+        return <Navigate to={isCompany ? "/company" : homeFor(userData)} replace />
     }
 
     const handleGoogleAuth = async () => {
@@ -50,7 +57,7 @@ function Auth() {
 
             const user = result.data.user || result.data
             dispatch(setUserData(user))
-            navigate("/dashboard", { replace: true })
+            navigate(isCompany ? "/company" : homeFor(user), { replace: true })
         } catch (err) {
             console.error("login failed", err)
             const known = friendlyError(err?.code)
@@ -72,20 +79,26 @@ function Auth() {
             >
                 <div className="flex items-center justify-center mb-6 gap-3">
                     <div className="bg-black text-white p-2 rounded-lg">
-                        <FaRobot />
+                        {isCompany ? <FaBuilding /> : <FaRobot />}
                     </div>
                     <h2 className="font-semibold text-lg">Interview.hai</h2>
                 </div>
 
-                <h1 className="text-2xl md:text-3xl text-center leading-snug font-semibold mb-4">Continue With
-                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full inline-flex items-center gap-2">
-                        <AiFillOpenAI />
-                        AI Smart Interview
+                <span className={`mx-auto mb-4 flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${isCompany ? "bg-indigo-100 text-indigo-700" : "bg-green-100 text-green-700"}`}>
+                    {isCompany ? <><FaBuilding /> Company &amp; Founder login</> : <><AiFillOpenAI /> Candidate login</>}
+                </span>
+
+                <h1 className="text-2xl md:text-3xl text-center leading-snug font-semibold mb-4">
+                    {isCompany ? "Hire smarter with " : "Continue With "}
+                    <span className={`px-3 py-1 rounded-full inline-flex items-center gap-2 ${isCompany ? "bg-indigo-100 text-indigo-700" : "bg-green-100 text-green-600"}`}>
+                        {isCompany ? "Company Dashboard" : <><AiFillOpenAI /> AI Smart Interview</>}
                     </span>
                 </h1>
 
                 <p className="text-center text-sm text-gray-500 md:text-base leading-relaxed mb-8">
-                    Get your dream job with AI Smart Interview, and unlock your full potential.
+                    {isCompany
+                        ? "Post jobs, upload your company's work and reach matched candidates — your founder dashboard lives here."
+                        : "Get your dream job with AI Smart Interview, and unlock your full potential."}
                 </p>
 
                 <motion.button
@@ -96,8 +109,16 @@ function Auth() {
                     className="w-full flex items-center justify-center gap-3 py-3 bg-black text-white rounded-full shadow-md disabled:opacity-70"
                 >
                     {loading ? <FaSpinner className="animate-spin" /> : <FcGoogle size={24} />}
-                    {loading ? "Signing you in..." : "Continue with Google Account"}
+                    {loading ? "Signing you in..." : isCompany ? "Continue with Google as Company" : "Continue with Google Account"}
                 </motion.button>
+
+                <p className="mt-5 text-center text-xs text-gray-500">
+                    {isCompany ? (
+                        <>Looking for a job? <Link to="/auth" className="text-gray-900 underline underline-offset-4">Candidate login</Link></>
+                    ) : (
+                        <>Hiring or a founder? <Link to="/auth?role=company" className="text-gray-900 underline underline-offset-4">Company &amp; founder login</Link></>
+                    )}
+                </p>
 
                 {error && (
                     <motion.p
