@@ -5,6 +5,7 @@ import Auth from './pages/Auth'
 import PostJob from './pages/PostJob'
 import CandidateProfile from './pages/CandidateProfile'
 import Dashboard from './pages/Dashboard'
+import CompanyDashboard from './pages/CompanyDashboard'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
@@ -36,6 +37,7 @@ function App() {
       <Route path="/post-job" element={<PostJob />} />
       <Route path="/profile" element={<CandidateProfile />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/company" element={<CompanyDashboard />} />
     </Routes>
   )
 }

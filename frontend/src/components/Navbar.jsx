@@ -11,6 +11,7 @@ import { setUserData } from '../redux/userSlice.js'
 const links = [
     { to: "/", label: "Home" },
     { to: "/dashboard", label: "Dashboard", auth: true },
+    { to: "/company", label: "Company", auth: true },
     { to: "/post-job", label: "Post Job" },
     { to: "/profile", label: "Candidate Profile" }
 ]
