@@ -3,15 +3,15 @@ import { useSelector, useDispatch } from 'react-redux'
 import { AnimatePresence, motion } from "motion/react"
 import { Link, useNavigate } from 'react-router-dom'
 import { HiMenu, HiX } from 'react-icons/hi'
-import { FiLogOut } from 'react-icons/fi'
+import { FiLogOut, FiLogIn } from 'react-icons/fi'
 import axios from 'axios'
 import { ServerUrl } from '../App'
 import { setUserData } from '../redux/userSlice.js'
 
 const links = [
     { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard", auth: true },
-    { to: "/company", label: "Company", auth: true },
+    { to: "/dashboard", label: "Candidate Dashboard", auth: true, roles: ["candidate"] },
+    { to: "/company", label: "Company Dashboard", auth: true },
     { to: "/post-job", label: "Post Job" },
     { to: "/profile", label: "Candidate Profile" }
 ]
@@ -46,6 +46,12 @@ function Navbar() {
         }
     }
 
+    const visibleLinks = links.filter((l) => {
+        if (l.auth && !userData) return false
+        if (userData && l.roles && !l.roles.includes(userData.role)) return false
+        return true
+    })
+
     return (
         <div className="sticky top-0 z-50 bg-[#f3f3f3]/80 backdrop-blur-md flex justify-center px-4 pt-4">
             <motion.div
@@ -62,7 +68,7 @@ function Navbar() {
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-1 text-sm">
-                    {links.filter((l) => !l.auth || userData).map((l) => (
+                    {visibleLinks.map((l) => (
                         <motion.span key={l.to} whileHover={{ y: -2 }}>
                             <Link
                                 to={l.to}
@@ -76,13 +82,33 @@ function Navbar() {
                 </nav>
 
                 <div className="flex items-center gap-3">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate(userData ? "/dashboard" : "/auth")}
-                        className="bg-black text-white text-sm px-5 py-2 rounded-full">
-                        {userData ? "Dashboard" : "Login"}
-                    </motion.button>
+                    {userData ? (
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => navigate(userData.role === "company" ? "/company" : "/dashboard")}
+                            className="bg-black text-white text-sm px-5 py-2 rounded-full">
+                            {userData.role === "company" ? "Company Dashboard" : "Dashboard"}
+                        </motion.button>
+                    ) : (
+                        <>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => navigate("/auth")}
+                                className="bg-white border border-gray-200 text-gray-800 text-sm px-4 py-2 rounded-full hidden sm:inline-block hover:shadow-md transition-shadow">
+                                Login
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => navigate("/auth?role=company")}
+                                className="bg-black text-white text-sm px-4 py-2 rounded-full inline-flex items-center gap-2">
+                                <FiLogIn />
+                                Company Login
+                            </motion.button>
+                        </>
+                    )}
 
                     {userData && (
                         <motion.button
@@ -116,7 +142,7 @@ function Navbar() {
                             className="absolute top-full mt-2 left-0 right-0 overflow-hidden rounded-3xl bg-white border border-gray-200 shadow-xl md:hidden"
                         >
                             <div className="p-3 flex flex-col">
-                                {links.filter((l) => !l.auth || userData).map((l) => (
+                                {visibleLinks.map((l) => (
                                     <Link
                                         key={l.to}
                                         to={l.to}
@@ -136,6 +162,25 @@ function Navbar() {
                                         <FiLogOut />
                                         Logout
                                     </button>
+                                )}
+
+                                {!userData && (
+                                    <>
+                                        <Link
+                                            to="/auth"
+                                            onClick={() => setOpen(false)}
+                                            className="px-4 py-3 rounded-2xl text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                            Candidate login
+                                        </Link>
+                                        <Link
+                                            to="/auth?role=company"
+                                            onClick={() => setOpen(false)}
+                                            className="px-4 py-3 rounded-2xl text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 transition-colors"
+                                        >
+                                            Company &amp; founder login
+                                        </Link>
+                                    </>
                                 )}
                             </div>
                         </motion.nav>
