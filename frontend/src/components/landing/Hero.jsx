@@ -142,6 +142,19 @@ function Hero() {
                         variants={fadeUp}
                         initial="hidden"
                         animate="visible"
+                        transition={{ delay: 0.72 }}
+                        className="mt-5 text-sm text-gray-500"
+                    >
+                        Hiring or a founder?{" "}
+                        <Link to="/auth?role=company" className="text-gray-900 font-medium underline underline-offset-4 hover:no-underline">
+                            Company &amp; founder login →
+                        </Link>
+                    </motion.div>
+
+                    <motion.div
+                        variants={fadeUp}
+                        initial="hidden"
+                        animate="visible"
                         transition={{ delay: 0.8 }}
                         className="mt-10 flex items-center gap-6 text-xs text-gray-500"
                     >

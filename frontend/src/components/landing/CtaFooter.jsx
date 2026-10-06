@@ -50,8 +50,8 @@ function CtaFooter() {
                                 </Link>
                             </motion.div>
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
-                                <Link to="/post-job" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                                    Hire from our talent pool
+                                <Link to="/auth?role=company" className="inline-flex items-center gap-2 rounded-full border border-white/25 px-7 py-3.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                                    Company &amp; founder login
                                 </Link>
                             </motion.div>
                         </motion.div>
