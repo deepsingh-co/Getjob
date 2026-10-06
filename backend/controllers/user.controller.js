@@ -26,6 +26,37 @@ export const getProfile = async (req, res) => {
     }
 }
 
+export const upsertCompanyProfile = async (req, res) => {
+    try {
+        const { companyName, website, about } = req.body
+
+        if (!companyName) {
+            return res.status(400).json({ message: "companyName is required" })
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            {
+                $set: {
+                    role: "company",
+                    companyName,
+                    website: website || "",
+                    about: about || ""
+                }
+            },
+            { new: true, select: "-__v" }
+        )
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
+
+        return res.status(200).json(user)
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to save company profile ${error.message}` })
+    }
+}
+
 export const upsertProfile = async (req, res) => {
     try {
         const { phone, headline, skills, experienceYears, education, location, summary, openToWork } = req.body
