@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { AnimatePresence, motion } from "motion/react"
 import { Link, useNavigate } from 'react-router-dom'
 import { HiMenu, HiX } from 'react-icons/hi'
+import { FiLogOut } from 'react-icons/fi'
+import axios from 'axios'
+import { ServerUrl } from '../App'
+import { setUserData } from '../redux/userSlice.js'
 
 const links = [
     { to: "/", label: "Home" },
@@ -13,9 +17,11 @@ const links = [
 
 function Navbar() {
     const { userData } = useSelector((state) => state.user)
+    const dispatch = useDispatch()
     const navigate = useNavigate()
     const [scrolled, setScrolled] = useState(false)
     const [open, setOpen] = useState(false)
+    const [loggingOut, setLoggingOut] = useState(false)
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20)
@@ -23,6 +29,21 @@ function Navbar() {
         window.addEventListener("scroll", onScroll, { passive: true })
         return () => window.removeEventListener("scroll", onScroll)
     }, [])
+
+    const handleLogout = async () => {
+        if (loggingOut) return
+        setLoggingOut(true)
+        try {
+            await axios.post(ServerUrl + "/api/auth/logout", {}, { withCredentials: true })
+        } catch (error) {
+            console.error("logout failed", error)
+        } finally {
+            dispatch(setUserData(null))
+            setOpen(false)
+            setLoggingOut(false)
+            navigate("/")
+        }
+    }
 
     return (
         <div className="sticky top-0 z-50 bg-[#f3f3f3]/80 backdrop-blur-md flex justify-center px-4 pt-4">
@@ -62,6 +83,20 @@ function Navbar() {
                         {userData ? "Dashboard" : "Login"}
                     </motion.button>
 
+                    {userData && (
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleLogout}
+                            disabled={loggingOut}
+                            aria-label="Logout"
+                            className="hidden sm:inline-flex items-center gap-2 text-sm px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors disabled:opacity-60"
+                        >
+                            <FiLogOut />
+                            Logout
+                        </motion.button>
+                    )}
+
                     <button
                         onClick={() => setOpen((v) => !v)}
                         aria-label="Toggle menu"
@@ -90,6 +125,17 @@ function Navbar() {
                                         {l.label}
                                     </Link>
                                 ))}
+
+                                {userData && (
+                                    <button
+                                        onClick={handleLogout}
+                                        disabled={loggingOut}
+                                        className="flex items-center gap-2 px-4 py-3 rounded-2xl text-sm text-left text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+                                    >
+                                        <FiLogOut />
+                                        Logout
+                                    </button>
+                                )}
                             </div>
                         </motion.nav>
                     )}
