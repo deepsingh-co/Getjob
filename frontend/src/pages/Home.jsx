@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useSelector } from 'react-redux'
 import Navbar from '../components/Navbar.jsx'
 import Dashboard from './Dashboard.jsx'
+import CompanyDashboard from './CompanyDashboard.jsx'
 import Hero from '../components/landing/Hero.jsx'
 import Marquee from '../components/landing/Marquee.jsx'
 import Features from '../components/landing/Features.jsx'
@@ -15,7 +16,7 @@ function Home() {
     const { userData, authChecked } = useSelector((state) => state.user)
 
     if (authChecked && userData) {
-        return <Dashboard />
+        return userData.role === "company" ? <CompanyDashboard /> : <Dashboard />
     }
 
     return (
