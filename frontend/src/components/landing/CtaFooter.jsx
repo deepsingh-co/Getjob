@@ -70,9 +70,10 @@ function CtaFooter() {
                     </div>
 
                     <nav className="flex flex-wrap justify-center gap-6 text-xs text-gray-500">
-                        <Link to="/auth" className="hover:text-gray-900 transition-colors">Candidates</Link>
+                        <Link to="/about" className="hover:text-gray-900 transition-colors">About Us</Link>
+                        <Link to="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
+                        <Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
                         <Link to="/post-job" className="hover:text-gray-900 transition-colors">Post a job</Link>
-                        <Link to="/profile" className="hover:text-gray-900 transition-colors">Profile</Link>
                     </nav>
 
                     <p className="text-xs text-gray-400">© {new Date().getFullYear()} Interview.Hai</p>

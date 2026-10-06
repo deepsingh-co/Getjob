@@ -10,10 +10,11 @@ import { setUserData } from '../redux/userSlice.js'
 
 const links = [
     { to: "/", label: "Home" },
+    { to: "/about", label: "About Us" },
+    { to: "/contact", label: "Contact" },
+    { to: "/privacy", label: "Privacy Policy" },
     { to: "/dashboard", label: "Candidate Dashboard", auth: true, roles: ["candidate"] },
-    { to: "/company", label: "Company Dashboard", auth: true },
-    { to: "/post-job", label: "Post Job" },
-    { to: "/profile", label: "Candidate Profile" }
+    { to: "/company", label: "Company Dashboard", auth: true }
 ]
 
 function Navbar() {
@@ -67,7 +68,7 @@ function Navbar() {
                     <h1 className="font-semibold">Interview.Hai</h1>
                 </Link>
 
-                <nav className="hidden md:flex items-center gap-1 text-sm">
+                <nav className="hidden lg:flex items-center gap-1 text-sm">
                     {visibleLinks.map((l) => (
                         <motion.span key={l.to} whileHover={{ y: -2 }}>
                             <Link
