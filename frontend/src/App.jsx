@@ -6,6 +6,9 @@ import PostJob from './pages/PostJob'
 import CandidateProfile from './pages/CandidateProfile'
 import Dashboard from './pages/Dashboard'
 import CompanyDashboard from './pages/CompanyDashboard'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
@@ -38,6 +41,9 @@ function App() {
       <Route path="/profile" element={<CandidateProfile />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/company" element={<CompanyDashboard />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
     </Routes>
   )
 }
