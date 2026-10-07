@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seed.js",
+    "test:ivr": "node test-ivr.mjs"
   },
   "author": "",
   "license": "ISC",

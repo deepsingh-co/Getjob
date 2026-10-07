@@ -1,7 +1,8 @@
 import Job from "../models/job.model.js";
 import Interview from "../models/interview.model.js";
 import Profile from "../models/profile.model.js";
-import { generateRefCode, matchCandidatesForJob, notifyHr } from "../services/hiring.service.js";
+import { generateRefCode, matchCandidatesForJob, notifyHr, callHrForJob } from "../services/hiring.service.js";
+import { matchProfileToJob } from "../services/matching.service.js";
 
 export const createJob = async (req, res) => {
     try {
@@ -45,12 +46,13 @@ export const createJob = async (req, res) => {
 
         const interviews = await matchCandidatesForJob(job);
         const notification = await notifyHr(job, interviews);
+        const hrCall = await callHrForJob(job, interviews);
 
         const matches = await Interview.find({ job: job._id })
             .populate("candidate", "name email")
             .populate("profile", "phone skills experienceYears education location");
 
-        return res.status(201).json({ job, matches, notification });
+        return res.status(201).json({ job, matches, notification, hrCall });
     } catch (error) {
         return res.status(500).json({ message: `Failed to create job ${error.message}` });
     }
@@ -89,5 +91,37 @@ export const getMatchedProfiles = async (req, res) => {
         return res.status(200).json(profiles);
     } catch (error) {
         return res.status(500).json({ message: `Failed to get profiles ${error.message}` });
+    }
+};
+
+export const getOpenJobs = async (req, res) => {
+    try {
+        const [jobs, profile, myInterviews] = await Promise.all([
+            Job.find({ status: "active" }).sort({ createdAt: -1 }),
+            Profile.findOne({ user: req.userId }),
+            Interview.find({ candidate: req.userId }).select("job status matchScore matchedSkills missingSkills")
+        ]);
+
+        const interviewByJob = new Map(
+            myInterviews.map((interview) => [String(interview.job), interview])
+        );
+
+        const payload = jobs.map((job) => {
+            const mine = interviewByJob.get(String(job._id));
+            const match = profile ? matchProfileToJob(job, profile) : null;
+
+            return {
+                ...job.toObject(),
+                applied: Boolean(mine),
+                applicationStatus: mine?.status || "",
+                matchScore: mine?.matchScore ?? match?.score ?? null,
+                matchedSkills: mine?.matchedSkills ?? match?.matchedSkills ?? [],
+                missingSkills: mine?.missingSkills ?? match?.missingSkills ?? []
+            };
+        });
+
+        return res.status(200).json(payload);
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to get open jobs ${error.message}` });
     }
 };

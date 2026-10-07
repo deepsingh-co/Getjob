@@ -68,11 +68,15 @@ function PostJob() {
             const { data } = await axios.post(ServerUrl + "/api/jobs", payload, { withCredentials: true })
             setResult(data)
             setMatches(data.matches || [])
-            setMessage(
-                data.notification?.notified
-                    ? `Job posted. Twilio SMS sent to HR (${data.job.hrPhone}) with code ${data.job.refCode}.`
-                    : `Job posted. ${data.notification?.reason || "HR could not be notified."}`
-            )
+            const smsPart = data.notification?.notified
+                ? `SMS sent to HR (${data.job.hrPhone})`
+                : `SMS failed: ${data.notification?.reason || "HR could not be notified"}`
+            const callPart = data.hrCall?.called
+                ? (data.hrCall.dryRun
+                    ? "HR call simulated (dry-run mode)"
+                    : "automated HR call placed — press 1 confirm, 2 human review, 3 cancel, 4 follow up")
+                : `HR call not placed: ${data.hrCall?.reason || "no matching candidates"}`
+            setMessage(`Job posted (code ${data.job.refCode}). ${smsPart}. ${callPart}.`)
             loadJobs()
         } catch (error) {
             setMessage(error.response?.data?.message || "Failed to post job")
