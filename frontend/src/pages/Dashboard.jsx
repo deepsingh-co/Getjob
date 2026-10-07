@@ -4,7 +4,7 @@ import { ServerUrl } from '../App'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import { motion } from 'motion/react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { FaUser, FaBriefcase, FaCoins, FaPhoneAlt, FaCheckCircle, FaSpinner } from 'react-icons/fa'
 
 const statusStyles = {
@@ -12,6 +12,10 @@ const statusStyles = {
     hr_notified: "bg-yellow-100 text-yellow-700",
     hr_confirmed: "bg-blue-100 text-blue-700",
     candidate_called: "bg-green-100 text-green-700",
+    human_review: "bg-purple-100 text-purple-700",
+    follow_up: "bg-orange-100 text-orange-700",
+    delayed: "bg-amber-100 text-amber-700",
+    next_job: "bg-teal-100 text-teal-700",
     rejected: "bg-red-100 text-red-600",
     failed: "bg-red-100 text-red-600"
 }
@@ -21,6 +25,10 @@ const statusLabel = {
     hr_notified: "Recruiter notified",
     hr_confirmed: "Interview confirmed",
     candidate_called: "You received a call",
+    human_review: "Under human review",
+    follow_up: "Follow-up scheduled",
+    delayed: "Interview delayed",
+    next_job: "Considered for next job",
     rejected: "Not selected",
     failed: "Call failed"
 }
@@ -37,9 +45,9 @@ const item = {
 
 function Dashboard() {
     const { userData, authChecked } = useSelector((state) => state.user)
-    const navigate = useNavigate()
     const [profile, setProfile] = useState(null)
     const [interviews, setInterviews] = useState([])
+    const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
 
@@ -49,15 +57,19 @@ function Dashboard() {
             setLoading(true)
             setError("")
             try {
-                const [profileRes, interviewRes] = await Promise.all([
+                const [profileRes, interviewRes, jobsRes] = await Promise.all([
                     axios.get(ServerUrl + "/api/user/profile", { withCredentials: true })
                         .then((res) => res.data)
                         .catch((err) => (err.response?.status === 404 ? null : Promise.reject(err))),
                     axios.get(ServerUrl + "/api/hiring/my-interviews", { withCredentials: true })
+                        .then((res) => res.data),
+                    axios.get(ServerUrl + "/api/jobs/open", { withCredentials: true })
                         .then((res) => res.data)
+                        .catch(() => [])
                 ])
                 setProfile(profileRes)
                 setInterviews(interviewRes)
+                setJobs(Array.isArray(jobsRes) ? jobsRes : [])
             } catch (err) {
                 setError(err.response?.data?.message || "Could not load your dashboard")
             } finally {
@@ -110,15 +122,9 @@ function Dashboard() {
                         </div>
 
                         <div className="flex gap-3">
-                            <Link to="/profile" className="rounded-full bg-white border border-gray-200 px-5 py-2.5 text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+                            <Link to="/profile" className="rounded-full bg-black text-white px-5 py-2.5 text-sm font-medium shadow-sm hover:opacity-90 transition-opacity">
                                 {profile ? "Edit profile" : "Complete profile"}
                             </Link>
-                            <button
-                                onClick={() => navigate("/post-job")}
-                                className="rounded-full bg-black text-white px-5 py-2.5 text-sm font-medium shadow-sm hover:opacity-90 transition-opacity"
-                            >
-                                Post a job
-                            </button>
                         </div>
                     </div>
                 </motion.div>
@@ -263,6 +269,80 @@ function Dashboard() {
                         )}
                     </motion.section>
                 </div>
+
+                <motion.section
+                    variants={container}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-6 rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm"
+                >
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-semibold text-gray-900">Open jobs for you</h2>
+                        <span className="text-xs text-gray-400">{jobs.length} active roles</span>
+                    </div>
+
+                    {loading && (
+                        <div className="py-14 grid place-items-center text-gray-400">
+                            <FaSpinner className="animate-spin text-xl" />
+                        </div>
+                    )}
+
+                    {!loading && jobs.length === 0 && (
+                        <p className="py-10 text-center text-sm text-gray-500">
+                            No open roles right now — add skills to your profile so we can match you first.
+                        </p>
+                    )}
+
+                    {!loading && jobs.length > 0 && (
+                        <motion.div variants={container} className="mt-4 grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {jobs.map((job) => (
+                                <motion.article
+                                    key={job._id}
+                                    variants={item}
+                                    whileHover={{ y: -6 }}
+                                    className="rounded-2xl border border-gray-200 p-5 flex flex-col"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">{job.title}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {job.company}{job.location ? ` · ${job.location}` : ""}
+                                            </p>
+                                        </div>
+                                        {job.matchScore !== null && (
+                                            <span className={`shrink-0 text-xs px-2.5 py-1 rounded-full ${job.matchScore >= 50
+                                                ? "bg-green-100 text-green-700"
+                                                : "bg-gray-100 text-gray-600"}`}>
+                                                {job.matchScore}% match
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {job.description && (
+                                        <p className="mt-3 text-xs text-gray-600 line-clamp-2">{job.description}</p>
+                                    )}
+
+                                    <div className="mt-3 flex flex-wrap gap-1.5">
+                                        {(job.skills || []).slice(0, 5).map((s) => (
+                                            <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-900 text-white">{s}</span>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                                        <span>{job.experienceYears || 0}+ yrs · {job.education === "any" ? "Any degree" : job.education}</span>
+                                        {job.applicationStatus ? (
+                                            <span className={`px-2 py-0.5 rounded-full ${statusStyles[job.applicationStatus] || "bg-gray-100 text-gray-600"}`}>
+                                                {statusLabel[job.applicationStatus] || job.applicationStatus}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400">Not matched yet</span>
+                                        )}
+                                    </div>
+                                </motion.article>
+                            ))}
+                        </motion.div>
+                    )}
+                </motion.section>
             </main>
         </div>
     )

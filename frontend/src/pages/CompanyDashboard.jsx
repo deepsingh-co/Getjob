@@ -5,7 +5,7 @@ import axios from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion, AnimatePresence } from 'motion/react'
 import { Link, Navigate } from 'react-router-dom'
-import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages } from 'react-icons/fa'
+import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages, FaCheck, FaTimes, FaUserTie } from 'react-icons/fa'
 import { setUserData } from '../redux/userSlice.js'
 
 const categories = [
@@ -111,10 +111,39 @@ function CompanyOnboarding({ userData }) {
     )
 }
 
+const candidateStatusStyles = {
+    matched: "bg-gray-100 text-gray-600",
+    hr_notified: "bg-yellow-100 text-yellow-700",
+    hr_confirmed: "bg-blue-100 text-blue-700",
+    candidate_called: "bg-green-100 text-green-700",
+    human_review: "bg-purple-100 text-purple-700",
+    follow_up: "bg-orange-100 text-orange-700",
+    delayed: "bg-amber-100 text-amber-700",
+    next_job: "bg-teal-100 text-teal-700",
+    rejected: "bg-red-100 text-red-600",
+    failed: "bg-red-100 text-red-600"
+}
+
+const candidateStatusLabel = {
+    matched: "Matched",
+    hr_notified: "Awaiting your decision",
+    hr_confirmed: "Interview confirmed",
+    candidate_called: "Candidate called",
+    human_review: "Human review",
+    follow_up: "Follow up",
+    delayed: "Candidate requested delay",
+    next_job: "Ready for next role",
+    rejected: "Rejected",
+    failed: "Call failed"
+}
+
 function CompanyDashboard() {
     const { userData, authChecked } = useSelector((state) => state.user)
     const [works, setWorks] = useState([])
     const [loadingWorks, setLoadingWorks] = useState(true)
+    const [candidates, setCandidates] = useState([])
+    const [loadingCandidates, setLoadingCandidates] = useState(true)
+    const [busyId, setBusyId] = useState("")
     const [submitting, setSubmitting] = useState(false)
     const [message, setMessage] = useState("")
     const [error, setError] = useState("")
@@ -141,9 +170,41 @@ function CompanyDashboard() {
         }
     }
 
+    const loadCandidates = async () => {
+        setLoadingCandidates(true)
+        try {
+            const { data } = await axios.get(ServerUrl + "/api/hiring/candidates", { withCredentials: true })
+            setCandidates(Array.isArray(data) ? data : [])
+        } catch (err) {
+            setError(err.response?.data?.message || "Could not load matched candidates")
+        } finally {
+            setLoadingCandidates(false)
+        }
+    }
+
     useEffect(() => {
-        if (userData?.role === "company") loadWorks()
+        if (userData?.role === "company") {
+            loadWorks()
+            loadCandidates()
+        }
     }, [userData])
+
+    const decide = async (id, action) => {
+        setBusyId(id)
+        setError("")
+        setMessage("")
+        try {
+            await axios.post(`${ServerUrl}/api/hiring/interviews/${id}/${action}`, {}, { withCredentials: true })
+            await loadCandidates()
+            setMessage(action === "confirm"
+                ? "Interview confirmed — the candidate is being called"
+                : "Candidate rejected")
+        } catch (err) {
+            setError(err.response?.data?.message || "Could not update the candidate")
+        } finally {
+            setBusyId("")
+        }
+    }
 
     const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -234,9 +295,6 @@ function CompanyDashboard() {
                         </div>
 
                         <div className="flex gap-3">
-                            <Link to="/dashboard" className="rounded-full bg-white border border-gray-200 px-5 py-2.5 text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
-                                Candidate dashboard
-                            </Link>
                             <Link to="/post-job" className="rounded-full bg-black text-white px-5 py-2.5 text-sm font-medium shadow-sm hover:opacity-90 transition-opacity">
                                 Post a job
                             </Link>
@@ -432,6 +490,102 @@ function CompanyDashboard() {
                         </motion.div>
                     </section>
                 </div>
+
+                <motion.section
+                    variants={container}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-6 rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm"
+                >
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-semibold text-gray-900 inline-flex items-center gap-2">
+                            <FaUserTie /> Matched candidates
+                        </h2>
+                        <span className="text-xs text-gray-400">{candidates.length} candidates</span>
+                    </div>
+
+                    {loadingCandidates && (
+                        <div className="py-14 grid place-items-center text-gray-400">
+                            <FaSpinner className="animate-spin text-xl" />
+                        </div>
+                    )}
+
+                    {!loadingCandidates && candidates.length === 0 && (
+                        <div className="py-12 text-center">
+                            <p className="text-sm text-gray-500">
+                                No candidates yet. Post a job and matching candidates will appear here.
+                            </p>
+                            <Link to="/post-job" className="mt-4 inline-block rounded-full bg-black text-white px-6 py-2.5 text-sm">
+                                Post a job
+                            </Link>
+                        </div>
+                    )}
+
+                    {!loadingCandidates && candidates.length > 0 && (
+                        <motion.div variants={container} className="mt-4 flex flex-col gap-3">
+                            {candidates.map((c) => {
+                                const pending = ["matched", "hr_notified", "human_review", "follow_up", "delayed"].includes(c.status)
+                                return (
+                                    <motion.article
+                                        key={c._id}
+                                        variants={item}
+                                        whileHover={{ x: 6 }}
+                                        className="rounded-2xl border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-4"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {c.candidate?.name || "Candidate"}
+                                                <span className="ml-2 text-xs font-normal text-gray-500">{c.candidate?.email}</span>
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {c.job?.title || "Role"}
+                                                {c.job?.location ? ` · ${c.job.location}` : ""}
+                                                {c.profile?.phone ? ` · ${c.profile.phone}` : ""}
+                                            </p>
+                                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                                {(c.profile?.skills || []).slice(0, 6).map((s) => (
+                                                    <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-900 text-white">{s}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full">
+                                                {c.matchScore}% match
+                                            </span>
+                                            <span className={`text-xs px-2.5 py-1 rounded-full ${candidateStatusStyles[c.status] || "bg-gray-100 text-gray-600"}`}>
+                                                {candidateStatusLabel[c.status] || c.status}
+                                            </span>
+
+                                            {pending && (
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => decide(c._id, "confirm")}
+                                                        disabled={busyId === c._id}
+                                                        aria-label="Confirm interview"
+                                                        className="inline-flex items-center gap-1.5 rounded-full bg-black text-white px-4 py-1.5 text-xs disabled:opacity-60"
+                                                    >
+                                                        {busyId === c._id ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                                                        Confirm
+                                                    </button>
+                                                    <button
+                                                        onClick={() => decide(c._id, "reject")}
+                                                        disabled={busyId === c._id}
+                                                        aria-label="Reject candidate"
+                                                        className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 text-gray-600 px-4 py-1.5 text-xs hover:border-red-300 hover:text-red-600 disabled:opacity-60"
+                                                    >
+                                                        <FaTimes />
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.article>
+                                )
+                            })}
+                        </motion.div>
+                    )}
+                </motion.section>
             </main>
         </div>
     )

@@ -8,13 +8,21 @@ import axios from 'axios'
 import { ServerUrl } from '../App'
 import { setUserData } from '../redux/userSlice.js'
 
-const links = [
+const guestLinks = [
     { to: "/", label: "Home" },
     { to: "/about", label: "About Us" },
     { to: "/contact", label: "Contact" },
-    { to: "/privacy", label: "Privacy Policy" },
-    { to: "/dashboard", label: "Candidate Dashboard", auth: true, roles: ["candidate"] },
-    { to: "/company", label: "Company Dashboard", auth: true }
+    { to: "/privacy", label: "Privacy Policy" }
+]
+
+const candidateLinks = [
+    { to: "/", label: "Home" },
+    { to: "/dashboard", label: "Dashboard" }
+]
+
+const companyLinks = [
+    { to: "/", label: "Home" },
+    { to: "/company", label: "Company Dashboard" }
 ]
 
 function Navbar() {
@@ -47,11 +55,9 @@ function Navbar() {
         }
     }
 
-    const visibleLinks = links.filter((l) => {
-        if (l.auth && !userData) return false
-        if (userData && l.roles && !l.roles.includes(userData.role)) return false
-        return true
-    })
+    const visibleLinks = !userData
+        ? guestLinks
+        : userData.role === "company" ? companyLinks : candidateLinks
 
     return (
         <div className="sticky top-0 z-50 bg-[#f3f3f3]/80 backdrop-blur-md flex justify-center px-4 pt-4">
