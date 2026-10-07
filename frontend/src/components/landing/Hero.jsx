@@ -129,6 +129,7 @@ function Hero() {
                         </motion.span>
 
                         <motion.button
+                            onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.97 }}
                             className="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200 px-7 py-3.5 text-sm font-medium text-gray-800 shadow-sm"

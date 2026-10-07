@@ -21,7 +21,7 @@ const steps = [
 
 function HowItWorks() {
     return (
-        <section className="relative bg-gray-900 text-white py-24 overflow-hidden">
+        <section id="how-it-works" className="relative bg-gray-900 text-white py-24 overflow-hidden scroll-mt-24">
             <div className="absolute -top-24 right-0 w-[380px] h-[380px] rounded-full bg-indigo-600/20 blur-3xl animate-blob" />
             <div className="absolute bottom-0 left-0 w-[320px] h-[320px] rounded-full bg-sky-500/10 blur-3xl animate-blob" style={{ animationDelay: "-8s" }} />
 
