@@ -7,6 +7,7 @@ import CompanyDashboard from './CompanyDashboard.jsx'
 import Hero from '../components/landing/Hero.jsx'
 import Marquee from '../components/landing/Marquee.jsx'
 import Features from '../components/landing/Features.jsx'
+import FeaturedWork from '../components/landing/FeaturedWork.jsx'
 import HowItWorks from '../components/landing/HowItWorks.jsx'
 import Stats from '../components/landing/Stats.jsx'
 import Testimonials from '../components/landing/Testimonials.jsx'
@@ -31,6 +32,7 @@ function Home() {
                 <Hero />
                 <Marquee />
                 <Features />
+                <FeaturedWork />
                 <HowItWorks />
                 <Stats />
                 <Testimonials />
