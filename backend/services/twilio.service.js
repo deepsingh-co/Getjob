@@ -59,14 +59,28 @@ const formatInterviewTime = (dateTime) => {
 
 export const buildCandidateCallTwiml = ({ candidateName, jobTitle, company, interviewDateTime, hrName, hrPhone }) => {
     const when = formatInterviewTime(interviewDateTime);
-    const speech = `Hello ${escapeXml(candidateName)}. This is an automated call from GetJob. Congratulations, you have been shortlisted for the role of ${escapeXml(jobTitle)} at ${escapeXml(company)}. Your interview is scheduled on ${escapeXml(when)}. Please reply to this message or contact ${escapeXml(hrName || "the recruiter")} at ${escapeXml(hrPhone || "the company")} to confirm your attendance. Thank you.`;
+    const speech = `Hello ${escapeXml(candidateName)}. This is an automated call from GetJob. Congratulations, you have been shortlisted for the role of ${escapeXml(jobTitle)} at ${escapeXml(company)}. Your interview is scheduled on ${escapeXml(when)}. Please key in your response on the keypad. Thank you.`;
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say voice="Polly.Joanna" language="en-IN">${speech}</Say>
     <Pause length="1"/>
     <Gather numDigits="1" action="/api/hiring/twilio/candidate-gather" method="POST">
-        <Say voice="Polly.Joanna" language="en-IN">Press 1 to confirm, or press 2 to reschedule.</Say>
+        <Say voice="Polly.Joanna" language="en-IN">Press 1 to confirm. Press 2 if you cannot confirm. Press 3 to delay the interview. Press 4 to be considered for the next job.</Say>
+    </Gather>
+    <Say voice="Polly.Joanna" language="en-IN">We did not receive any input. Goodbye.</Say>
+</Response>`;
+};
+
+export const buildHrCallTwiml = ({ jobTitle, company, candidateCount, jobId }) => {
+    const speech = `Hello. This is an automated call from GetJob. ${candidateCount} matched candidate${candidateCount === 1 ? " is" : "s are"} shortlisted for the role of ${escapeXml(jobTitle)} at ${escapeXml(company)}. The shortlist has been sent to you by text message. Key in your decision now.`;
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say voice="Polly.Joanna" language="en-IN">${speech}</Say>
+    <Pause length="1"/>
+    <Gather numDigits="1" action="/api/hiring/twilio/hr-gather?job=${escapeXml(String(jobId))}" method="POST">
+        <Say voice="Polly.Joanna" language="en-IN">Press 1 to confirm the shortlist and schedule the candidates. Press 2 for human review. Press 3 to cancel the shortlist. Press 4 to schedule a follow up.</Say>
     </Gather>
     <Say voice="Polly.Joanna" language="en-IN">We did not receive any input. Goodbye.</Say>
 </Response>`;
@@ -92,6 +106,24 @@ export const callCandidate = async ({ to, ...message }) => {
     return { sid: call.sid, status: call.status, dryRun: false };
 };
 
+export const callHr = async ({ to, ...message }) => {
+    const twilioClient = getClient();
+    const twiml = buildHrCallTwiml(message);
+
+    if (!twilioClient) {
+        console.log(`[twilio:dry-run] HR call to ${to}: ${message.candidateCount} candidate(s) for ${message.jobTitle}`);
+        return { sid: "DRY-RUN", status: "dry-run", dryRun: true };
+    }
+
+    const call = await twilioClient.calls.create({
+        to,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        twiml
+    });
+
+    return { sid: call.sid, status: call.status, dryRun: false };
+};
+
 export const validateTwilioSignature = (req) => {
     if (!process.env.TWILIO_AUTH_TOKEN) return true;
     const signature = req.headers["x-twilio-signature"];
@@ -100,4 +132,4 @@ export const validateTwilioSignature = (req) => {
     return twilio.validateRequest(process.env.TWILIO_AUTH_TOKEN, signature, url, req.body || {});
 };
 
-export default { sendSms, callCandidate, isTwilioConfigured, validateTwilioSignature };
+export default { sendSms, callCandidate, callHr, isTwilioConfigured, validateTwilioSignature };

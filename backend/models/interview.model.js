@@ -27,7 +27,18 @@ const interviewSchema = new mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ["matched", "hr_notified", "hr_confirmed", "candidate_called", "rejected", "failed"],
+        enum: [
+            "matched",
+            "hr_notified",
+            "hr_confirmed",
+            "candidate_called",
+            "human_review",
+            "follow_up",
+            "delayed",
+            "next_job",
+            "rejected",
+            "failed"
+        ],
         default: "matched"
     },
     hrSmsSid: {

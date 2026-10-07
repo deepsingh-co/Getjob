@@ -2,7 +2,7 @@ import crypto from "crypto";
 import Profile from "../models/profile.model.js";
 import Interview from "../models/interview.model.js";
 import { findMatches } from "./matching.service.js";
-import { sendSms, callCandidate } from "./twilio.service.js";
+import { sendSms, callCandidate, callHr } from "./twilio.service.js";
 
 export const generateRefCode = () => crypto.randomBytes(3).toString("hex").toUpperCase();
 
@@ -56,7 +56,8 @@ export const notifyHr = async (job, interviews) => {
     const body =
         `GetJob: ${interviews.length} suitable candidate(s) found for "${job.title}" at ${job.company}.\n` +
         `${lines}\n` +
-        `Reply YES ${job.refCode} to confirm the interview and we will call the candidates to schedule it.\n` +
+        `You are receiving an automated call with the same shortlist. Press 1 to confirm, 2 for human review, 3 to cancel, 4 for follow up.\n` +
+        `Or reply YES ${job.refCode} to confirm the interview and we will call the candidates to schedule it.\n` +
         `Reply NO ${job.refCode} to reject.`;
 
     try {
@@ -73,6 +74,34 @@ export const notifyHr = async (job, interviews) => {
     } catch (error) {
         console.error("HR notification failed", error.message);
         return { notified: false, reason: error.message };
+    }
+};
+
+export const callHrForJob = async (job, interviews) => {
+    if (!interviews.length) {
+        return { called: false, reason: "No matching candidates found" };
+    }
+
+    try {
+        const result = await callHr({
+            to: job.hrPhone,
+            jobTitle: job.title,
+            company: job.company,
+            candidateCount: interviews.length,
+            jobId: String(job._id)
+        });
+
+        await Interview.updateMany(
+            { _id: { $in: interviews.map((interview) => interview._id) } },
+            {
+                $push: { logs: { event: "hr_called", detail: `Automated HR call placed to ${job.hrPhone} (sid: ${result.sid})` } }
+            }
+        );
+
+        return { called: true, sid: result.sid, dryRun: Boolean(result.dryRun) };
+    } catch (error) {
+        console.error("HR call failed", error.message);
+        return { called: false, reason: error.message };
     }
 };
 
