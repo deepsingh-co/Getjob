@@ -1,140 +1,328 @@
-# GetJob 🚀
+# Interview.Hai — GetJob
 
-GetJob is a full-stack web application designed to help users prepare for job interviews, manage resume/AI mock interviews, and streamline their career advancement process using modern web technologies and AI integrations.
+AI-assisted hiring platform: candidates build a profile and practise with AI, companies post roles, the system scores every profile against the role, texts the shortlist to HR, and — on confirmation — calls the candidate to lock the interview slot.
 
-## 🤖 Hiring Automation (Twilio)
-
-1. A company **posts a job** (`POST /api/jobs` or the `/post-job` page).
-2. The system **matches candidate profiles** against the job (skills 60%, experience 25%, education 10%, location 5%) and stores every candidate scoring above the threshold.
-3. The company **HR receives a Twilio SMS** listing the shortlisted candidates with their match score, plus a reply code (`YES <refCode>` / `NO <refCode>`).
-4. When the **HR replies "YES"**, the system places an **automated Twilio voice call** (TwiML text-to-speech) to each selected candidate confirming the interview date/time. The candidate can press `1` to confirm or `2` to reschedule.
-5. Every step (matched → hr_notified → hr_confirmed → candidate_called) is tracked in the interview pipeline.
-
-### Endpoints
-| Method | Route | Purpose |
-| --- | --- | --- |
-| POST | `/api/user/profile` | Save candidate profile (phone, skills, experience) |
-| POST | `/api/jobs` | Post job → match profiles → SMS the HR |
-| GET | `/api/jobs/:id/matches` | View matched candidates & status |
-| POST | `/api/hiring/interviews/:id/confirm` | Confirm → automated call to candidate |
-| POST | `/api/hiring/interviews/:id/reject` | Reject candidate |
-| POST | `/api/hiring/twilio/inbound-sms` | Twilio webhook for HR reply |
-| POST | `/api/hiring/twilio/candidate-gather` | Twilio webhook for candidate DTMF |
-| POST | `/api/hiring/twilio/call-status` | Twilio voice status callback |
-
-Point your Twilio phone number's **Messaging webhook** to `SERVER_URL/api/hiring/twilio/inbound-sms` (HTTP POST) to enable HR replies.
-
-## 🛠️ Tech Stack
-
-### Frontend (`/frontend`)
-- **Framework**: React 19 with Vite
-- **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`)
-- **State Management**: Redux Toolkit & React Redux
-- **Routing**: React Router DOM
-- **HTTP Client**: Axios
-- **Authentication/Services**: Firebase
-- **Animations/UI**: Motion, React Icons
-
-### Backend (`/backend`)
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB (via Mongoose)
-- **Authentication**: JSON Web Tokens (JWT), Cookie-Parser
-- **Middleware**: CORS, Dotenv
-- **Development**: Nodemon
+Monorepo: **MERN** (MongoDB, Express, React 19, Node) + Firebase Google login + Twilio SMS/voice.
 
 ---
 
-## 📁 Project Structure
+## 1. What the product does
 
-```text
+| Role | What they see |
+|------|---------------|
+| **Candidate** (customer) | `/dashboard` — interview pipeline, open jobs with match %, profile, credits |
+| **Company / founder** | `/company` — work uploads, post a job, matched candidates with Confirm/Reject |
+| **Guest** | Landing page: hero, live stats, work showcase, how-it-works, testimonials |
+
+### Hiring flow (the core loop)
+
+```
+Company posts a job  (POST /api/jobs)
+        │
+        ▼
+Matching engine scores every open profile
+(skills 60% · experience 25% · education 10% · location 5%)
+        │
+        ▼
+Interview documents created (status: matched)
+        │
+        ├──────────────► Twilio SMS to HR  (shortlist + job code)
+        │
+        └──────────────► Twilio VOICE CALL to HR (automated IVR)
+                              1  confirm the shortlist  → hr_confirmed + candidate calls
+                              2  human review           → human_review
+                              3  cancel                 → rejected
+                              4  follow up              → follow_up
+        │
+        ▼  (after HR confirms — by IVR key, dashboard button, or SMS "YES <code>")
+Automated Twilio voice call to each candidate
+        1  confirm            → candidate_accepted log (stays candidate_called)
+        2  cannot confirm     → rejected
+        3  delay the interview→ delayed
+        4  consider for next job → next_job
+        │
+        ▼
+candidate dashboard updates live
+```
+
+Dry-run mode: if `TWILIO_*` keys are empty, SMS/calls are logged to the backend console instead of being sent.
+
+#### Twilio configuration
+
+`backend/.env` (git-ignored):
+
+```env
+TWILIO_ACCOUNT_SID = "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+TWILIO_AUTH_TOKEN  = "your-auth-token"
+TWILIO_PHONE_NUMBER = "+1XXXXXXXXXX"   # Twilio voice-capable number
+SERVER_URL = "https://your-public-host" # must be public for DTMF callbacks
+```
+
+- Without these keys everything still works in **dry-run** (logged, not sent).
+- The HR/candidate **calls themselves** only need valid credentials (TwiML is sent inline with the API call).
+- The **keypad (DTMF) callbacks** need a publicly reachable `SERVER_URL` (use ngrok while developing locally: `ngrok http 8000` and put that URL in `SERVER_URL`), otherwise Twilio cannot POST the digits back.
+- Webhooks are signature-verified (`X-Twilio-Signature`) — requests without a valid signature get `403`.
+- Smoke test the integration: `cd backend && npm run test:ivr` (creates a temp job, exercises both IVR handlers with signed requests, then cleans up).
+
+---
+
+## 2. Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| Frontend | React 19 + Vite 8, Tailwind CSS 4, React Router 7, Redux Toolkit, motion (framer), react-icons, axios |
+| Auth | Firebase Google sign-in → backend JWT in an httpOnly cookie (7 days) |
+| Backend | Node 22, Express 5, Mongoose 9, cookie-parser, multer, Twilio SDK |
+| Database | MongoDB (local `mongodb://127.0.0.1:27017/getjob` or Atlas) |
+| Lint | oxlint (`npm run lint`) |
+
+---
+
+## 3. Repo structure
+
+```
 Getjob/
 ├── backend/
-│   ├── config/          # Database connection & token utilities
-│   ├── controllers/     # Request handler logic (Auth, User, Job, Hiring)
-│   ├── middleware/      # Authentication & authorization middleware
-│   ├── models/          # Mongoose schemas (User, Profile, Job, Interview)
-│   ├── routes/          # Express route definitions
-│   ├── services/        # Profile matching + Twilio SMS/voice services
-│   ├── index.js         # Entry point for Express server
-│   └── package.json     # Backend dependencies & scripts
+│   ├── index.js               # express app, CORS, router mounting, /uploads static
+│   ├── seed.js                # demo dataset  (npm run seed)
+│   ├── .env                   # secrets (git-ignored)
+│   ├── config/                # connectDB, token
+│   ├── middleware/isAuth.js   # JWT cookie guard → req.userId
+│   ├── models/                # user, profile, job, interview, work, contact
+│   ├── controllers/           # auth, user, job, hiring, work, stats, contact
+│   ├── routes/                # one router per resource
+│   ├── services/
+│   │   ├── matching.service.js   # scoring algorithm
+│   │   ├── hiring.service.js     # match → SMS → confirm → call
+│   │   └── twilio.service.js     # SMS/call/TwiML + signature validation
+│   └── uploads/               # work cover images (served at /uploads)
+│
 └── frontend/
-    ├── public/          # Static assets & images
-    ├── src/
-    │   ├── assets/      # Videos, icons, and image resources
-    │   ├── components/  # Reusable UI components (Navbar, etc.)
-    │   ├── pages/       # Application pages (Home, Auth, PostJob, CandidateProfile)
-    │   ├── redux/       # Redux store and user slice
-    │   ├── utils/       # Firebase & helper utilities
-    │   ├── App.jsx      # Main application component & routes
-    │   ├── main.jsx     # React entry point
-    │   └── index.css    # Global Tailwind styles
-    ├── package.json     # Frontend dependencies & scripts
-    └── vite.config.js   # Vite configuration
+    └── src/
+        ├── App.jsx            # routes + ServerUrl export
+        ├── pages/             # Home, Auth, Dashboard, CompanyDashboard,
+        │                      # PostJob, CandidateProfile, About, Contact, Privacy
+        ├── components/
+        │   ├── Navbar.jsx     # role-aware links
+        │   └── landing/       # Hero, Marquee, Features, FeaturedWork,
+        │                      # HowItWorks, Stats, Testimonials, CtaFooter
+        ├── redux/userSlice.js # userData in store
+        └── utils/firebase.js  # Firebase config
 ```
+
+### Routes (frontend)
+
+| Path | Page | Access |
+|------|------|--------|
+| `/` | Landing, or redirects to the right dashboard when logged in | public |
+| `/auth` | Candidate Google login → `/dashboard` | guest |
+| `/auth?role=company` | Company Google login → `/company` | guest |
+| `/dashboard` | Candidate dashboard | candidate |
+| `/company` | Company / founder dashboard | company |
+| `/post-job` | Post a job + live matches | company |
+| `/profile` | Candidate profile form | candidate |
+| `/about`, `/contact`, `/privacy` | Static pages (navbar only when logged out) | public |
 
 ---
 
-## ⚙️ Getting Started & Installation
+## 4. Getting started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- MongoDB instance (Local or MongoDB Atlas)
+- Node 18+ (tested on Node 22)
+- MongoDB running locally **or** an Atlas connection string
+- A Firebase project with **Google** sign-in enabled and `localhost` in Authorised domains
 
-### 1. Clone the repository & navigate to project root
+### Install
+
 ```bash
-git clone <repository-url>
-cd Getjob
+cd backend  && npm install
+cd ../frontend && npm install
 ```
 
-### 2. Setup Backend
+### Environment — `backend/.env`
+
+```env
+PORT = 8000
+MONGODB_URL = "mongodb://127.0.0.1:27017/getjob"
+JWT_SECRET = "change-me"
+SERVER_URL = "http://localhost:8000"   # public URL (ngrok) once you want DTMF callbacks
+
+# Twilio — leave empty for dry-run mode (SMS/calls logged, not sent)
+TWILIO_ACCOUNT_SID = ""
+TWILIO_AUTH_TOKEN = ""
+TWILIO_PHONE_NUMBER = ""
+```
+
+Firebase config lives in `frontend/src/utils/firebase.js` (or `frontend/.env` with `VITE_FIREBASE_*`).
+
+### Seed the demo dataset
+
 ```bash
 cd backend
-npm install
+npm run seed
 ```
-Create a `.env` file in the `backend` directory with the following variables:
-```env
-PORT=8000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-SERVER_URL=http://localhost:8000
 
-# Twilio (SMS to HR + automated interview calls)
-TWILIO_ACCOUNT_SID=your_account_sid
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_PHONE_NUMBER=+1XXXXXXXXXX
-```
-> If the Twilio keys are empty, the system runs in **dry-run mode**: SMS/call content is printed to the server log instead of being sent.
+Creates:
 
-Run the backend development server:
+- **2 companies** — Nexlify Labs + Orbit Fintech (the first one binds to an existing company login if present)
+- **6 candidates** with profiles (skills, experience, phone, location)
+- **4 active jobs** — Frontend, Backend, AI/ML, Product Design (with future interview slots)
+- **9 interviews** across statuses: `matched`, `hr_notified`, `hr_confirmed`, `candidate_called`
+- **4 published works** with cover images (rendered in the landing "Work showcase")
+- Existing accounts that log in get a demo profile + interview automatically
+- Removes throwaway test accounts (`*@example.com`, `*@e.com`)
+
+Bind seed data to your own Google account:
+
 ```bash
-npm run dev
+npm run seed -- --company-email=you@gmail.com --candidate-email=you@gmail.com
+# or: SEED_COMPANY_EMAIL=... SEED_CANDIDATE_EMAIL=... npm run seed
 ```
-*(Server will start on http://localhost:8000)*
 
-### 3. Setup Frontend
-Open a new terminal window/tab:
-```bash
-cd frontend
-npm install
-```
-Create a `.env` file in the `frontend` directory if needed for configuration (e.g. Firebase credentials).
+Seed is idempotent — run it as often as you like.
 
-Run the frontend development server:
+### Run (3 terminals)
+
 ```bash
-npm run dev
+# terminal 1 — MongoDB (skip if already running as a service)
+mongod
+
+# terminal 2 — API on :8000
+cd backend && npm run dev        # or: node index.js
+
+# terminal 3 — web app on :5173
+cd frontend && npm run dev
 ```
-*(Vite dev server will start on http://localhost:5173)*
+
+Open http://localhost:5173
 
 ---
 
-## 📜 Available Scripts
+## 5. API reference
 
-### Backend (`/backend`)
-- `npm run dev`: Starts the backend server with `nodemon` for auto-reloading.
+`Cookie: token=<JWT>` required where marked 🔒. Use `withCredentials: true`.
 
-### Frontend (`/frontend`)
-- `npm run dev`: Starts the Vite development server.
-- `npm run build`: Builds the production bundle.
-- `npm run lint`: Runs `oxlint` code linting.
-- `npm run preview`: Previews the production build locally.
+### Auth
+| Method | Endpoint | Body | Notes |
+|--------|----------|------|-------|
+| POST | `/api/auth/google` | `{name, email}` | Firebase-verified client → sets cookie |
+| POST | `/api/auth/logout` | — | clears cookie |
+
+### User 🔒
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| GET | `/api/user/current-user` | current user |
+| GET | `/api/user/profile` | candidate profile (404 if none) |
+| POST | `/api/user/profile` | create/update profile |
+| POST | `/api/user/company-profile` | `{companyName, website, about}` |
+
+### Jobs 🔒
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| POST | `/api/jobs` | create job → runs matching → texts HR |
+| GET | `/api/jobs` | jobs posted by you (company) |
+| GET | `/api/jobs/open` | **all active jobs with your match % + application status** (candidate) |
+| GET | `/api/jobs/matches` | every open profile (for `/post-job`) |
+| GET | `/api/jobs/:id/matches` | `{job, matches}` for one job |
+
+### Hiring 🔒
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| GET | `/api/hiring/my-interviews` | candidate's pipeline |
+| GET | `/api/hiring/candidates` | **all candidates matched to your jobs (company)** |
+| POST | `/api/hiring/interviews/:id/confirm` | confirm → places the candidate call |
+| POST | `/api/hiring/interviews/:id/reject` | mark not selected |
+
+### Twilio webhooks (public, signature-verified)
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/hiring/twilio/inbound-sms` | HR replies `YES <code>` / `NO <code>` |
+| `POST /api/hiring/twilio/hr-gather` | **HR IVR**: 1 confirm · 2 human review · 3 cancel · 4 follow up |
+| `POST /api/hiring/twilio/candidate-gather` | **Candidate IVR**: 1 confirm · 2 not confirmed · 3 delay · 4 next job |
+| `POST /api/hiring/twilio/call-status` | call status callback |
+
+### Public
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| GET | `/api/stats` | `{candidates, jobs, matches, confirmed}` for landing |
+| GET | `/api/works` | published works (landing showcase) |
+| POST | `/api/contact` | `{name, email, message}` |
+
+### Works 🔒
+`GET /mine` · `POST /` (multipart, field `image`) · `PUT /:id` · `DELETE /:id`
+
+---
+
+## 6. Data models
+
+| Model | Key fields |
+|-------|-----------|
+| **User** | `name, email (unique), role: candidate\|company, credits, companyName, website, about` |
+| **Profile** | `user (unique), phone, headline, skills[], experienceYears, education, location, summary, openToWork` |
+| **Job** | `title, company, skills[], experienceYears, education, location, jobType, interviewDateTime, refCode (unique), hrName, hrPhone, postedBy, status, matchThreshold` |
+| **Interview** | `job + candidate (unique pair), matchScore, matchedSkills[], missingSkills[], status, hrSmsSid, callSid, logs[]` |
+| **Work** | `title, description, category, link, tags[], image, companyName, uploadedBy, status` |
+| **Contact** | `name, email, message` |
+
+Interview status machine:
+
+```
+matched → hr_notified → hr_confirmed → candidate_called
+   │           │              │
+   │           ├─ human_review (HR key 2)   ├─ delayed    (candidate key 3)
+   │           ├─ follow_up   (HR key 4)    ├─ next_job   (candidate key 4)
+   │           └─ rejected    (HR key 3)    └─ rejected   (candidate key 2)
+   └─ rejected / failed
+```
+
+Matching weights (`backend/services/matching.service.js`): skills **60**, experience **25**, education **10**, location **5** → 0-100 score; jobs only match profiles scoring ≥ `matchThreshold` (default 50).
+
+---
+
+## 7. Frontend behaviour notes
+
+- **Navbar is role-aware**: guests see Home/About/Contact/Privacy; candidates see Home/Dashboard; companies see Home/Company Dashboard. After login the informational links disappear.
+- **Candidate dashboard** shows your interview pipeline **and all open jobs with your match %**.
+- **Company dashboard** shows uploads **and matched candidates** with inline Confirm/Reject.
+- **Home (`/`)** renders the right dashboard directly for a logged-in user — no wrong-dashboard links anywhere.
+- **"Watch how it works"** scrolls to the How-it-works section.
+- Landing stats come from `/api/stats`, work showcase from `/api/works` — no hardcoded numbers.
+
+---
+
+## 8. Verification / quality gates
+
+```bash
+cd frontend && npm run lint        # oxlint → must be 0 warnings 0 errors
+cd frontend && npm run build       # vite production build
+cd backend  && node --check index.js && node --check seed.js
+```
+
+Smoke test the API:
+
+```bash
+curl http://localhost:8000/api/stats
+curl http://localhost:8000/api/works
+curl -X POST http://localhost:8000/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Dev","email":"dev@test.com","message":"Hi"}'
+```
+
+---
+
+## 9. Deployment notes
+
+- **Backend** (Render/Railway/VM): set `MONGODB_URL` (Atlas), `JWT_SECRET`, `SERVER_URL`, `TWILIO_*`; point Twilio SMS webhook to `https://<host>/api/hiring/twilio/inbound-sms` and voice status callbacks to the two Twilio endpoints.
+- **Frontend** (Vercel/Netlify): change `ServerUrl` in `frontend/src/App.jsx` to the deployed API origin and update the CORS `origin` in `backend/index.js` accordingly; set `cookie` `secure: true` and `sameSite: "none"` behind HTTPS.
+- **Firebase**: add the production domain to Authentication → Settings → Authorised domains.
+- Run `npm run seed` once in staging/demo environments to populate data; never in a production DB with real users.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `db already exists with different case` | lowercase DB name in `MONGODB_URL` |
+| Atlas host `does not resolve` | use a local `mongod` or a valid Atlas SRV |
+| Login redirects nowhere | check Firebase authorised domains + `VITE_FIREBASE_*` |
+| No SMS/call | empty `TWILIO_*` = dry-run; check backend console logs |
+| Port busy | kill the old PID (`Get-NetTCPConnection -LocalPort 8000`) and restart |
