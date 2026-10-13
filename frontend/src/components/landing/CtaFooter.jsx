@@ -73,6 +73,7 @@ function CtaFooter() {
                         <Link to="/about" className="hover:text-gray-900 transition-colors">About Us</Link>
                         <Link to="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
                         <Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
+                        <Link to="/roadmap" className="hover:text-gray-900 transition-colors">Roadmap</Link>
                         <Link to="/post-job" className="hover:text-gray-900 transition-colors">Post a job</Link>
                     </nav>
 

@@ -9,6 +9,7 @@ import CompanyDashboard from './pages/CompanyDashboard'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Privacy from './pages/Privacy'
+import Roadmap from './pages/Roadmap'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
@@ -44,6 +45,7 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/roadmap" element={<Roadmap />} />
     </Routes>
   )
 }

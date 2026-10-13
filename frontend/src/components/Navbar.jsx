@@ -12,7 +12,8 @@ const guestLinks = [
     { to: "/", label: "Home" },
     { to: "/about", label: "About Us" },
     { to: "/contact", label: "Contact" },
-    { to: "/privacy", label: "Privacy Policy" }
+    { to: "/privacy", label: "Privacy Policy" },
+    { to: "/roadmap", label: "Roadmap" }
 ]
 
 const candidateLinks = [
