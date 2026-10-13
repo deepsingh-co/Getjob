@@ -17,7 +17,10 @@ const statusStyles = {
     delayed: "bg-amber-100 text-amber-700",
     next_job: "bg-teal-100 text-teal-700",
     rejected: "bg-red-100 text-red-600",
-    failed: "bg-red-100 text-red-600"
+    failed: "bg-red-100 text-red-600",
+    in_call: "bg-red-100 text-red-600",
+    reconnecting: "bg-yellow-100 text-yellow-700",
+    ended: "bg-gray-100 text-gray-600"
 }
 
 const statusLabel = {
@@ -30,7 +33,10 @@ const statusLabel = {
     delayed: "Interview delayed",
     next_job: "Considered for next job",
     rejected: "Not selected",
-    failed: "Call failed"
+    failed: "Call failed",
+    in_call: "Live interview",
+    reconnecting: "Reconnecting...",
+    ended: "Interview ended"
 }
 
 const container = {
@@ -341,6 +347,154 @@ function Dashboard() {
                                 </motion.article>
                             ))}
                         </motion.div>
+                    )}
+                </motion.section>
+                <motion.section
+                    variants={container}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-6 rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm"
+                >
+                    <div className="flex items-center justify-between">
+                        <h2 className="font-semibold text-gray-900">Live interview</h2>
+                        <span className="text-xs text-gray-400">Real-time interview session</span>
+                    </div>
+
+                    {loading && (
+                        <div className="py-14 grid place-items-center text-gray-400">
+                            <FaSpinner className="animate-spin text-xl" />
+                        </div>
+                    )}
+
+                    {!loading && error && (
+                        <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>
+                    )}
+
+                    {!loading && !error && interviews.length === 0 && (
+                        <div className="py-12 text-center">
+                            <p className="text-sm text-gray-500">No active interviews.</p>
+                            <p className="mt-2 text-xs text-gray-400">Start an interview from the pipeline.</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && interviews.length > 0 && (
+                        <div className="mt-4 space-y-4">
+                            {interviews.map((interview) => {
+                                const job = interview.job;
+                                const status = interview.status;
+                                const candidate = interview.candidate;
+                                const matchScore = interview.matchScore;
+                                const phone = interview.profile?.phone || candidate?.phone;
+                                const interviewDateTime = job?.interviewDateTime;
+
+                                const getStatusClass = () => {
+                                    if (status === "candidate_called") return "in-call";
+                                    if (status === "hr_confirmed" && !interview.callSid) return "ready";
+                                    return statusStyles[status] || "bg-gray-100 text-gray-600";
+                                };
+
+                                const getStatusLabel = () => {
+                                    if (status === "candidate_called") return "in_call";
+                                    if (status === "hr_confirmed" && !interview.callSid) return "Ready for call";
+                                    return statusLabel[status] || status;
+                                };
+
+                                return (
+                                    <div
+                                        key={interview._id}
+                                        className="rounded-2xl border border-gray-200 p-5 flex flex-col gap-3 shadow-sm"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {job?.title || "Role"} · {job?.company || "Company"}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {matchScore}% skills match
+                                                    {interview.job?.interviewDateTime &&
+                                                        ` · Interview ${new Date(
+                                                            interview.job.interviewDateTime
+                                                        ).toLocaleString("en-IN", {
+                                                            day: "numeric",
+                                                            month: "short",
+                                                            hour: "numeric",
+                                                            minute: "2-digit",
+                                                        })}`}
+                                                </p>
+                                            </div>
+                                            <span className={`text-xs px-2.5 py-1 rounded-full ${getStatusClass()}`}>
+                                                {getStatusLabel()}
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            <div>
+                                                <p className="text-xs text-gray-500">Candidate</p>
+                                                <p className="font-medium text-gray-900">
+                                                    {candidate?.name || "Not assigned"}
+                                                </p>
+                                                <p className="text-xs text-gray-400">{phone}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500">Scheduled</p>
+                                                <p className="font-medium text-gray-900">
+                                                    {interviewDateTime
+                                                        ? new Date(interviewDateTime).toLocaleDateString()
+                                                        : "Not set"}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {status === "candidate_called" ? (
+                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                <h3 className="text-xs text-gray-500">Interview session</h3>
+                                                <div className="mt-3 flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                                        <svg
+                                                            className="w-6 h-6 text-indigo-600"
+                                                            viewBox="0 0 24 24"
+                                                            fill="currentColor"
+                                                        >
+                                                            <path d="M8 16l4-4m0 0l4 4m-4-4l-4 4" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">Candidate: {candidate?.name || "Loading..."}</p>
+                                                        <p className="text-xs text-gray-500">Press to join</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => window.open(`/interview/${interview._id}`, "_blank")}
+                                                    className="mt-3 rounded-full bg-indigo-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-indigo-500 transition-colors"
+                                                >
+                                                    Join video call
+                                                </button>
+                                            </div>
+                                        ) : status === "hr_confirmed" ? (
+                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                <h3 className="text-xs text-gray-500">Ready for interview</h3>
+                                                <p className="text-sm text-gray-500">
+                                                    HR has confirmed. Waiting for candidate connection.
+                                                </p>
+                                                <button
+                                                    onClick={() => window.open(`/interview/${interview._id}`, "_blank")}
+                                                    className="mt-3 rounded-full bg-green-500 text-white px-4 py-2.5 text-sm font-medium hover:bg-green-400 transition-colors"
+                                                >
+                                                    Prepare session
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => window.open(`/interview/${interview._id}`, "_blank")}
+                                                className="mt-3 rounded-full bg-indigo-100 text-indigo-600 px-4 py-2.5 text-sm font-medium hover:bg-indigo-100 transition-colors"
+                                            >
+                                                Schedule interview
+                                            </button>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
                     )}
                 </motion.section>
             </main>
