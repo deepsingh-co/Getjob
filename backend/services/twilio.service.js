@@ -111,17 +111,24 @@ export const callHr = async ({ to, ...message }) => {
     const twiml = buildHrCallTwiml(message);
 
     if (!twilioClient) {
-        console.log(`[twilio:dry-run] HR call to ${to}: ${message.candidateCount} candidate(s) for ${message.jobTitle}`);
+        console.log(`[twilio:dry-run] HR call to ${to}: ${message.jobTitle} (${message.candidateCount} candidate(s)`);
         return { sid: "DRY-RUN", status: "dry-run", dryRun: true };
     }
 
-    const call = await twilioClient.calls.create({
-        to,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        twiml
-    });
+    try {
+        const call = await twilioClient.calls.create({
+            to,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            twiml,
+            statusCallback: `${process.env.SERVER_URL || "http://localhost:8000"}/api/hiring/twilio/call-status`,
+            statusCallbackEvent: ["initiated", "ringing", "answered", "completed"]
+        });
 
-    return { sid: call.sid, status: call.status, dryRun: false };
+        return { sid: call.sid, status: call.status, dryRun: false };
+    } catch (error) {
+        console.error(`[twilio:call-failed] HR call to ${to}: ${error.message}`);
+        return { sid: "ERROR", status: "error", dryRun: false, error: error.message };
+    }
 };
 
 export const validateTwilioSignature = (req) => {
