@@ -1,7 +1,7 @@
 import Interview from "../models/interview.model.js";
 import Job from "../models/job.model.js";
 import { confirmInterviews } from "../services/hiring.service.js";
-import { validateTwilioSignature } from "../services/twilio.service.js";
+import { validateTwilioSignature, sendSms } from "../services/twilio.service.js";
 
 const loadInterview = (id) =>
     Interview.findById(id)
@@ -21,6 +21,65 @@ export const confirmInterview = async (req, res) => {
 
         const results = await confirmInterviews([interview]);
         return res.status(200).json({ message: "Interview confirmed, candidate call placed", interview, results });
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to confirm interview ${error.message}` });
+    }
+};
+
+export const manualConfirmInterview = async (req, res) => {
+    try {
+        const interview = await loadInterview(req.params.id);
+        if (!interview) {
+            return res.status(404).json({ message: "Interview not found" });
+        }
+        if (["rejected", "next_job"].includes(interview.status)) {
+            return res.status(400).json({ message: `Cannot approve a ${interview.status} candidate` });
+        }
+
+        const { meetingTime } = req.body;
+        const now = new Date();
+
+        interview.status = "hr_confirmed";
+        interview.hrRespondedAt = now;
+        interview.logs.push({
+            event: "manual_confirmed",
+            detail: `HR manually approved${meetingTime ? ` — meeting scheduled for ${new Date(meetingTime).toLocaleString("en-IN")}` : ""}`
+        });
+
+        if (meetingTime) {
+            interview.logs.push({
+                event: "meeting_scheduled",
+                detail: `Meeting set to ${new Date(meetingTime).toLocaleString("en-IN")}`
+            });
+        }
+
+        await interview.save();
+
+        let smsResult = null;
+        const phone = interview.profile?.phone;
+        if (phone) {
+            const when = meetingTime
+                ? new Date(meetingTime).toLocaleString("en-IN", {
+                    weekday: "long", day: "numeric", month: "long",
+                    hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata"
+                }) + " IST"
+                : "to be shared by the recruiter";
+            const body = `Hello ${interview.candidate?.name || "Candidate"}, your interview for "${interview.job?.title}" at ${interview.job?.company}" has been confirmed. Interview: ${when}. Please be available. - GetJob`;
+            try {
+                smsResult = await sendSms({ to: phone, body });
+                interview.logs.push({ event: "candidate_sms", detail: `SMS sent to ${phone}` });
+                await interview.save();
+            } catch (smsErr) {
+                interview.logs.push({ event: "candidate_sms_failed", detail: smsErr.message });
+                await interview.save();
+            }
+        }
+
+        return res.status(200).json({
+            message: "Interview confirmed manually. Candidate notified.",
+            interview,
+            sms: smsResult
+        });
     } catch (error) {
         return res.status(500).json({ message: `Failed to confirm interview ${error.message}` });
     }

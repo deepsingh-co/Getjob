@@ -5,7 +5,7 @@ import axios from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion, AnimatePresence } from 'motion/react'
 import { Link, Navigate } from 'react-router-dom'
-import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages, FaCheck, FaTimes, FaUserTie } from 'react-icons/fa'
+import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages, FaCheck, FaTimes, FaUserTie, FaCalendarCheck, FaPhoneAlt } from 'react-icons/fa'
 import { setUserData } from '../redux/userSlice.js'
 
 const categories = [
@@ -157,6 +157,9 @@ function CompanyDashboard() {
         link: "",
         tags: ""
     })
+    const [manualModal, setManualModal] = useState(null)
+    const [meetingTime, setMeetingTime] = useState("")
+    const [manualBusy, setManualBusy] = useState(false)
 
     const loadWorks = async () => {
         setLoadingWorks(true)
@@ -203,6 +206,35 @@ function CompanyDashboard() {
             setError(err.response?.data?.message || "Could not update the candidate")
         } finally {
             setBusyId("")
+        }
+    }
+
+    const openManualApprove = (candidate) => {
+        setManualModal(candidate)
+        setMeetingTime("")
+    }
+
+    const manualApprove = async () => {
+        if (!manualModal) return
+        setManualBusy(true)
+        setError("")
+        setMessage("")
+        try {
+            const payload = {}
+            if (meetingTime) payload.meetingTime = meetingTime
+            await axios.post(
+                `${ServerUrl}/api/hiring/interviews/${manualModal._id}/manual-confirm`,
+                payload,
+                { withCredentials: true }
+            )
+            await loadCandidates()
+            setMessage(`Interview approved manually for ${manualModal.candidate?.name || "candidate"}${meetingTime ? ` — meeting set for ${new Date(meetingTime).toLocaleString("en-IN")}` : ""}`)
+            setManualModal(null)
+            setMeetingTime("")
+        } catch (err) {
+            setError(err.response?.data?.message || "Could not approve the candidate")
+        } finally {
+            setManualBusy(false)
         }
     }
 
@@ -562,11 +594,22 @@ function CompanyDashboard() {
                                                     <button
                                                         onClick={() => decide(c._id, "confirm")}
                                                         disabled={busyId === c._id}
-                                                        aria-label="Confirm interview"
+                                                        aria-label="Confirm via call"
+                                                        title="Confirm by placing an automated call to the candidate"
                                                         className="inline-flex items-center gap-1.5 rounded-full bg-black text-white px-4 py-1.5 text-xs disabled:opacity-60"
                                                     >
-                                                        {busyId === c._id ? <FaSpinner className="animate-spin" /> : <FaCheck />}
-                                                        Confirm
+                                                        {busyId === c._id ? <FaSpinner className="animate-spin" /> : <FaPhoneAlt />}
+                                                        Confirm via Call
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openManualApprove(c)}
+                                                        disabled={busyId === c._id}
+                                                        aria-label="Manual approve"
+                                                        title="Manually approve and schedule the interview meeting"
+                                                        className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 text-white px-4 py-1.5 text-xs hover:bg-indigo-500 disabled:opacity-60"
+                                                    >
+                                                        <FaCalendarCheck />
+                                                        Manual Approve
                                                     </button>
                                                     <button
                                                         onClick={() => decide(c._id, "reject")}
@@ -587,6 +630,85 @@ function CompanyDashboard() {
                     )}
                 </motion.section>
             </main>
+
+            <AnimatePresence>
+                {manualModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"
+                        onClick={() => { if (!manualBusy) { setManualModal(null); setMeetingTime("") } }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                            transition={{ duration: 0.25 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-md bg-white rounded-[24px] p-6 shadow-xl"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="grid place-items-center w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600">
+                                    <FaCalendarCheck />
+                                </span>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Manual Approve</h3>
+                                    <p className="text-xs text-gray-500">Confirm interview &amp; schedule the meeting</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-5 rounded-2xl bg-gray-50 border border-gray-200 p-4">
+                                <p className="text-sm font-medium text-gray-900">
+                                    {manualModal.candidate?.name || "Candidate"}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">{manualModal.candidate?.email}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    {manualModal.job?.title} · {manualModal.job?.company}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    {manualModal.profile?.phone || "No phone on file"}
+                                </p>
+                            </div>
+
+                            <div className="mt-4">
+                                <label className="text-sm font-medium text-gray-900">Meeting date &amp; time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={meetingTime}
+                                    onChange={(e) => setMeetingTime(e.target.value)}
+                                    className="w-full mt-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                />
+                                <p className="mt-1.5 text-xs text-gray-400">Leave empty to confirm without a specific meeting time.</p>
+                            </div>
+
+                            <div className="mt-6 flex items-center gap-3">
+                                <button
+                                    onClick={manualApprove}
+                                    disabled={manualBusy}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white rounded-full text-sm font-medium hover:bg-indigo-500 disabled:opacity-60"
+                                >
+                                    {manualBusy ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                                    {manualBusy ? "Approving..." : "Approve & Notify"}
+                                </button>
+                                <button
+                                    onClick={() => { setManualModal(null); setMeetingTime("") }}
+                                    disabled={manualBusy}
+                                    className="px-5 py-2.5 border border-gray-300 rounded-full text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+
+                            {manualModal.profile?.phone === "" && (
+                                <p className="mt-3 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                                    No phone number on file — candidate will not receive an SMS. Add a phone in their profile.
+                                </p>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

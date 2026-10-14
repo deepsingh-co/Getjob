@@ -2,6 +2,7 @@ import express from "express";
 import isAuth from "../middleware/isAuth.js";
 import {
     confirmInterview,
+    manualConfirmInterview,
     rejectInterview,
     getMyInterviews,
     getCompanyCandidates,
@@ -16,6 +17,7 @@ const hiringRouter = express.Router();
 hiringRouter.get("/my-interviews", isAuth, getMyInterviews);
 hiringRouter.get("/candidates", isAuth, getCompanyCandidates);
 hiringRouter.post("/interviews/:id/confirm", isAuth, confirmInterview);
+hiringRouter.post("/interviews/:id/manual-confirm", isAuth, manualConfirmInterview);
 hiringRouter.post("/interviews/:id/reject", isAuth, rejectInterview);
 
 hiringRouter.post("/twilio/inbound-sms", express.urlencoded({ extended: false }), handleHrSmsReply);
