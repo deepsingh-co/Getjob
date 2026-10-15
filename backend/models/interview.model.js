@@ -62,6 +62,10 @@ const interviewSchema = new mongoose.Schema({
     candidateCalledAt: {
         type: Date
     },
+    wasAnswered: {
+        type: Boolean,
+        default: false
+    },
     logs: [{
         event: String,
         detail: String,
