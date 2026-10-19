@@ -85,6 +85,70 @@ export const manualConfirmInterview = async (req, res) => {
     }
 };
 
+export const getInterviewRoom = async (req, res) => {
+    try {
+        const interview = await Interview.findById(req.params.id)
+            .populate("job", "title company location interviewDateTime status postedBy hrName hrPhone")
+            .populate("candidate", "name email")
+            .populate("profile", "phone skills experienceYears headline location");
+
+        if (!interview) {
+            return res.status(404).json({ message: "Interview not found" });
+        }
+
+        const isCandidate = String(interview.candidate?._id) === String(req.userId);
+        const isCompany = String(interview.job?.postedBy) === String(req.userId);
+        if (!isCandidate && !isCompany) {
+            return res.status(403).json({ message: "You are not part of this interview" });
+        }
+
+        return res.status(200).json(interview);
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to load interview ${error.message}` });
+    }
+};
+
+export const updateMeetingStatus = async (req, res) => {
+    try {
+        const interview = await Interview.findById(req.params.id)
+            .populate("job", "postedBy");
+
+        if (!interview) {
+            return res.status(404).json({ message: "Interview not found" });
+        }
+
+        const isCandidate = String(interview.candidate) === String(req.userId);
+        const isCompany = String(interview.job?.postedBy) === String(req.userId);
+        if (!isCandidate && !isCompany) {
+            return res.status(403).json({ message: "You are not part of this interview" });
+        }
+
+        const action = String(req.body?.action || "").toLowerCase();
+        const now = new Date();
+
+        if (action === "start") {
+            interview.meetingStartedAt = interview.meetingStartedAt || now;
+            interview.logs.push({ event: "meeting_joined", detail: `${isCompany ? "Recruiter" : "Candidate"} joined the video room` });
+        } else if (action === "end") {
+            interview.meetingEndedAt = now;
+            interview.logs.push({ event: "meeting_ended", detail: "Video interview ended" });
+        } else {
+            return res.status(400).json({ message: "action must be 'start' or 'end'" });
+        }
+
+        await interview.save();
+
+        return res.status(200).json({
+            message: action === "start" ? "Meeting started" : "Meeting ended",
+            meetingStartedAt: interview.meetingStartedAt,
+            meetingEndedAt: interview.meetingEndedAt,
+            meetingDuration: interview.meetingDuration
+        });
+    } catch (error) {
+        return res.status(500).json({ message: `Failed to update meeting ${error.message}` });
+    }
+};
+
 export const getMyInterviews = async (req, res) => {
     try {
         const interviews = await Interview.find({ candidate: req.userId })

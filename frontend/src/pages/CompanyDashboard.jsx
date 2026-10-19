@@ -5,7 +5,7 @@ import axios from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion, AnimatePresence } from 'motion/react'
 import { Link, Navigate } from 'react-router-dom'
-import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages, FaCheck, FaTimes, FaUserTie, FaCalendarCheck, FaPhoneAlt } from 'react-icons/fa'
+import { FaBuilding, FaSpinner, FaPlus, FaTrash, FaExternalLinkAlt, FaImages, FaCheck, FaTimes, FaUserTie, FaCalendarCheck, FaPhoneAlt, FaVideo } from 'react-icons/fa'
 import { setUserData } from '../redux/userSlice.js'
 
 const categories = [
@@ -621,6 +621,16 @@ function CompanyDashboard() {
                                                         Reject
                                                     </button>
                                                 </div>
+                                            )}
+                                            {!pending && ["hr_confirmed", "candidate_called"].includes(c.status) && (
+                                                <Link
+                                                    to={`/interview/${c._id}`}
+                                                    target="_blank"
+                                                    className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 text-white px-4 py-1.5 text-xs hover:bg-indigo-500 transition-colors"
+                                                >
+                                                    <FaVideo />
+                                                    Join Room
+                                                </Link>
                                             )}
                                         </div>
                                     </motion.article>

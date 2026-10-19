@@ -10,6 +10,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import Privacy from './pages/Privacy'
 import Roadmap from './pages/Roadmap'
+import InterviewRoom from './pages/InterviewRoom'
 import Chatbot from './components/Chatbot.jsx'
 import { useEffect } from 'react'
 import axios from 'axios'
@@ -48,6 +49,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/interview/:id" element={<InterviewRoom />} />
       </Routes>
       <Chatbot />
     </>

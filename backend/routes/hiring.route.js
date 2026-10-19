@@ -6,6 +6,8 @@ import {
     rejectInterview,
     getMyInterviews,
     getCompanyCandidates,
+    getInterviewRoom,
+    updateMeetingStatus,
     handleHrSmsReply,
     handleHrGather,
     handleCandidateGather,
@@ -19,6 +21,8 @@ hiringRouter.get("/candidates", isAuth, getCompanyCandidates);
 hiringRouter.post("/interviews/:id/confirm", isAuth, confirmInterview);
 hiringRouter.post("/interviews/:id/manual-confirm", isAuth, manualConfirmInterview);
 hiringRouter.post("/interviews/:id/reject", isAuth, rejectInterview);
+hiringRouter.get("/interviews/:id", isAuth, getInterviewRoom);
+hiringRouter.post("/interviews/:id/meeting", isAuth, updateMeetingStatus);
 
 hiringRouter.post("/twilio/inbound-sms", express.urlencoded({ extended: false }), handleHrSmsReply);
 hiringRouter.post("/twilio/hr-gather", express.urlencoded({ extended: false }), handleHrGather);
