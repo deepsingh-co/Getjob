@@ -13,6 +13,7 @@ import hiringRouter from "./routes/hiring.route.js"
 import statsRouter from "./routes/stats.route.js"
 import workRouter from "./routes/work.route.js"
 import contactRouter from "./routes/contact.route.js"
+import chatbotRouter from "./routes/chatbot.route.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,6 +35,7 @@ app.use("/api/hiring", hiringRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/works", workRouter);
 app.use("/api/contact", contactRouter);
+app.use("/api/chatbot", chatbotRouter);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 6000;

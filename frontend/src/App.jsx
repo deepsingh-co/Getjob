@@ -10,6 +10,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import Privacy from './pages/Privacy'
 import Roadmap from './pages/Roadmap'
+import Chatbot from './components/Chatbot.jsx'
 import { useEffect } from 'react'
 import axios from 'axios'
 import { useDispatch } from 'react-redux'
@@ -35,18 +36,21 @@ function App() {
   }, [dispatch])
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/post-job" element={<PostJob />} />
-      <Route path="/profile" element={<CandidateProfile />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/company" element={<CompanyDashboard />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/roadmap" element={<Roadmap />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/post-job" element={<PostJob />} />
+        <Route path="/profile" element={<CandidateProfile />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/company" element={<CompanyDashboard />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/roadmap" element={<Roadmap />} />
+      </Routes>
+      <Chatbot />
+    </>
   )
 }
 
