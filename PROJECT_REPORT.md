@@ -12,10 +12,10 @@ In
 
 by
 
-**[Student Name 1] ([Roll No.])**
-**[Student Name 2] ([Roll No.])**
-**[Student Name 3] ([Roll No.])**
-**[Student Name 4] ([Roll No.])**
+**Anurudh Singh (GR No.243147)**
+**Anshika Tiwari (GR No.243151)**
+**Abhishek Yadav (GR No.243152)**
+**Mansi Yadav (GR No.233152)**
 
 Under the guidance of
 
@@ -32,7 +32,7 @@ University of Mumbai
 
 # CERTIFICATE
 
-This is to certify that the S.E. Mini project entitled **Interview.Hai (GetJob) — AI-Assisted Interview Matching and Automated Scheduling System** is a bonafide work of **[Student Name 1] ([Roll No.])**, **[Student Name 2] ([Roll No.])**, **[Student Name 3] ([Roll No.])**, **[Student Name 4] ([Roll No.])** submitted to the University of Mumbai in partial fulfillment of the requirement for the award of the degree of Information Technology Engineering during the academic year 2026-27.
+This is to certify that the T.E. Mini project entitled **Interview.Hai (GetJob) — AI-Assisted Interview Matching and Automated Scheduling System** is a bonafide work of **Anurudh Singh (GR No.243147)**, **Anshika Tiwari (GR No.243151)**, **Abhishek Yadav (GR No.243152)**, **Mansi Yadav (GR No.233152)** submitted to the University of Mumbai in partial fulfillment of the requirement for the award of the degree of Information Technology Engineering during the academic year 2026-27.
 
 <br><br><br>
 
@@ -46,9 +46,9 @@ Subject Incharge
 
 ---
 
-# T. E. Mini Project Report Approval
+# T.E. Mini Project Report Approval
 
-This Mini project synopsis entitled **Interview.Hai (GetJob) — AI-Assisted Interview Matching and Automated Scheduling System** by **[Student Name 1]**, **[Student Name 2]**, **[Student Name 3]**, **[Student Name 4]** approved for the degree of Information Technology Engineering from University of Mumbai.
+This Mini project synopsis entitled **Interview.Hai (GetJob) — AI-Assisted Interview Matching and Automated Scheduling System** by **Anurudh Singh**, **Anshika Tiwari**, **Abhishek Yadav**, **Mansi Yadav** approved for the degree of Information Technology Engineering from University of Mumbai.
 
 <br><br><br><br><br>
 
@@ -66,16 +66,16 @@ We declare that this written submission represents our ideas in their own words 
 <br><br><br>
 
 --------------------------------------------
-**[Student Name 1] ([Roll No.])**
+**Anurudh Singh (GR No.243147)**
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --------------------------------------------
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **[Student Name 2] ([Roll No.])**
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Anshika Tiwari (GR No.243151)**
 
 --------------------------------------------
-**[Student Name 3] ([Roll No.])**
+**Abhishek Yadav (GR No.243152)**
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --------------------------------------------
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **[Student Name 4] ([Roll No.])**
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Mansi Yadav (GR No.233152)**
 
 Date:
 
@@ -166,21 +166,21 @@ This chapter presents the lessons learned represented with the conclusion and th
 
 | Sr. No. | Figures | Page No. |
 |---|---|---|
-| Fig. 3.1 | System Architecture of Interview.Hai | 10 |
-| Fig. 4.1 | Use Case Diagram | 12 |
-| Fig. 4.2 | Class Diagram | 13 |
-| Fig. 4.3 | Sequence Diagram | 13 |
-| Fig. 4.4 | ER Diagram | 14 |
-| Fig. 4.5 | Gantt Chart | 15 |
-| Fig. 5.1 | Landing Page | 24 |
-| Fig. 5.2 | Sign in / Sign up Page | 25 |
-| Fig. 5.3 | Candidate Dashboard | 26 |
-| Fig. 5.4 | Company Dashboard | 26 |
-| Fig. 5.5 | Post Job Page | 27 |
-| Fig. 5.6 | Manual Approve Modal | 27 |
-| Fig. 5.7 | Live Interview Room | 28 |
-| Fig. 5.8 | Roadmap and Learning Resources | 28 |
-| Fig. 5.9 | Hai Chatbot Assistant | 29 |
+| Fig. 3.1 | System Architecture of Interview.Hai | 19 |
+| Fig. 4.1 | Use Case Diagram | 21 |
+| Fig. 4.2 | Class Diagram | 22 |
+| Fig. 4.3 | Sequence Diagram | 23 |
+| Fig. 4.4 | ER Diagram | 25 |
+| Fig. 4.5 | Gantt Chart | 26 |
+| Fig. 5.1 | Landing Page | 33 |
+| Fig. 5.2 | Sign in / Sign up Page | 33 |
+| Fig. 5.3 | Candidate Dashboard | 33 |
+| Fig. 5.4 | Company Dashboard | 33 |
+| Fig. 5.5 | Post Job Page | 34 |
+| Fig. 5.6 | Manual Approve Modal | 34 |
+| Fig. 5.7 | Live Interview Room | 34 |
+| Fig. 5.8 | Roadmap and Learning Resources | 34 |
+| Fig. 5.9 | Hai Chatbot Assistant | 35 |
 
 ---
 
@@ -188,10 +188,10 @@ This chapter presents the lessons learned represented with the conclusion and th
 
 | Sr. No. | Tables | Page No. |
 |---|---|---|
-| Table 2.1 | Comparative Study Table | 6 |
-| Table 3.1 | Hardware Requirement | 8 |
-| Table 3.2 | Software Requirement | 9 |
-| Table 5.1 | Testing Summary | 29 |
+| Table 2.1 | Comparative Study Table | 16 |
+| Table 3.1 | Hardware Requirement | 18 |
+| Table 3.2 | Software Requirement | 18 |
+| Table 5.1 | Testing Summary | 36 |
 
 ---
 
@@ -1216,7 +1216,7 @@ Additionally, we extend our appreciation to all the teaching staff, whose profou
 
 <br><br>
 
-**[Student Name 1] ([Roll No.])**
-**[Student Name 2] ([Roll No.])**
-**[Student Name 3] ([Roll No.])**
-**[Student Name 4] ([Roll No.])**
+**Anurudh Singh (GR No.243147)**
+**Anshika Tiwari (GR No.243151)**
+**Abhishek Yadav (GR No.243152)**
+**Mansi Yadav (GR No.233152)**
