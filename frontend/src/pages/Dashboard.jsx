@@ -206,8 +206,8 @@ function Dashboard() {
                                             </p>
                                             <p className="text-xs text-gray-500">
                                                 {interview.matchScore}% skills match
-                                                {interview.job?.interviewDateTime &&
-                                                    ` · Interview ${new Date(interview.job.interviewDateTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}`}
+                                                {(interview.meetingTime || interview.job?.interviewDateTime) &&
+                                                    ` · Interview ${new Date(interview.meetingTime || interview.job.interviewDateTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}`}
                                             </p>
                                         </div>
                                         <span className={`text-xs px-2.5 py-1 rounded-full ${statusStyles[interview.status] || "bg-gray-100 text-gray-600"}`}>
@@ -385,7 +385,7 @@ function Dashboard() {
                                 const candidate = interview.candidate;
                                 const matchScore = interview.matchScore;
                                 const phone = interview.profile?.phone || candidate?.phone;
-                                const interviewDateTime = job?.interviewDateTime;
+                                const interviewDateTime = interview.meetingTime || job?.interviewDateTime;
 
                                 const getStatusClass = () => {
                                     if (status === "candidate_called") return "in-call";
@@ -411,9 +411,9 @@ function Dashboard() {
                                                 </p>
                                                 <p className="text-xs text-gray-500">
                                                     {matchScore}% skills match
-                                                    {interview.job?.interviewDateTime &&
+                                                    {interviewDateTime &&
                                                         ` · Interview ${new Date(
-                                                            interview.job.interviewDateTime
+                                                            interviewDateTime
                                                         ).toLocaleString("en-IN", {
                                                             day: "numeric",
                                                             month: "short",

@@ -258,7 +258,7 @@ function InterviewRoom() {
                         </p>
                         <p className="text-[11px] text-white/40 truncate">
                             {userData.role === "company" ? (candidate?.name || "Candidate") : `with ${job?.hrName || job?.company || "Recruiter"}`}
-                            {job?.interviewDateTime ? ` · ${new Date(job.interviewDateTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}` : ""}
+                            {(interview?.meetingTime || job?.interviewDateTime) ? ` · ${new Date(interview.meetingTime || job.interviewDateTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}` : ""}
                         </p>
                     </div>
                 </div>

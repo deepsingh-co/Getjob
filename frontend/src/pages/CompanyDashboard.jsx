@@ -574,6 +574,11 @@ function CompanyDashboard() {
                                                 {c.job?.location ? ` · ${c.job.location}` : ""}
                                                 {c.profile?.phone ? ` · ${c.profile.phone}` : ""}
                                             </p>
+                                            {c.meetingTime && (
+                                                <p className="text-xs font-medium text-indigo-600 mt-1">
+                                                    Meeting: {new Date(c.meetingTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+                                                </p>
+                                            )}
                                             <div className="mt-2 flex flex-wrap gap-1.5">
                                                 {(c.profile?.skills || []).slice(0, 6).map((s) => (
                                                     <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-900 text-white">{s}</span>

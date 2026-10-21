@@ -66,6 +66,9 @@ const interviewSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    meetingTime: {
+        type: Date
+    },
     meetingDuration: {
         type: Number,
         default: 30

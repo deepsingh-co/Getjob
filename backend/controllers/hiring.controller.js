@@ -38,18 +38,29 @@ export const manualConfirmInterview = async (req, res) => {
 
         const { meetingTime } = req.body;
         const now = new Date();
+        let scheduledAt = null;
+
+        if (meetingTime) {
+            scheduledAt = new Date(meetingTime);
+            if (Number.isNaN(scheduledAt.getTime())) {
+                return res.status(400).json({ message: "Invalid meeting time" });
+            }
+        }
 
         interview.status = "hr_confirmed";
         interview.hrRespondedAt = now;
+        if (scheduledAt) {
+            interview.meetingTime = scheduledAt;
+        }
         interview.logs.push({
             event: "manual_confirmed",
-            detail: `HR manually approved${meetingTime ? ` — meeting scheduled for ${new Date(meetingTime).toLocaleString("en-IN")}` : ""}`
+            detail: `HR manually approved${scheduledAt ? ` — meeting scheduled for ${scheduledAt.toLocaleString("en-IN")}` : ""}`
         });
 
-        if (meetingTime) {
+        if (scheduledAt) {
             interview.logs.push({
                 event: "meeting_scheduled",
-                detail: `Meeting set to ${new Date(meetingTime).toLocaleString("en-IN")}`
+                detail: `Meeting set to ${scheduledAt.toLocaleString("en-IN")}`
             });
         }
 
@@ -58,8 +69,8 @@ export const manualConfirmInterview = async (req, res) => {
         let smsResult = null;
         const phone = interview.profile?.phone;
         if (phone) {
-            const when = meetingTime
-                ? new Date(meetingTime).toLocaleString("en-IN", {
+            const when = scheduledAt
+                ? scheduledAt.toLocaleString("en-IN", {
                     weekday: "long", day: "numeric", month: "long",
                     hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata"
                 }) + " IST"
